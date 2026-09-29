@@ -1,0 +1,3 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+:root{--ccc-orange:#e95c1f;--ccc-navy:#22264e;--ccc-warm:#fff7ef;--ccc-mist:#e7ecf4;--ccc-slate:#6f789b;color-scheme:dark;background:#030915;color:#f7f9ff;font-family:'Hind',Arial,sans-serif}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030915}button,a{font:inherit}button{cursor:pointer}a{color:inherit}
