@@ -106,7 +106,7 @@ export const offerPoints = rows.filter((point) => point.status === "available" &
 export const currentPrices = rows.filter((point) => point.status === "observed");
 export const policyEvents = [{
   date: "2025-11-06",
-  title: "US administration announces Lilly and Novo Nordisk agreements",
+  title: "U.S. administration announces Lilly and Novo Nordisk agreements",
   description: "Announced $350 for Ozempic/Wegovy, a $346 combined average for Zepbound/orforglipron, and $150 initial doses for future oral products.",
   sourceUrl: "https://www.whitehouse.gov/fact-sheets/2025/11/06/fact-sheet-president-donald-j-trump-announces-major-developments-in-bringing-most-favored-nation-pricing-to-american-patients/",
 }];
@@ -125,10 +125,10 @@ export function getExplorePrice(product: string, dose: string, form: string) {
   if (!latest) return undefined;
   return {
     headline: `$${latest.usd}`,
-    detail: `${latest.eligibility}${current ? ` Current snapshot observed ${current.date}; this is not a dated price change.` : ""}${offers.length ? ` Current other offer${offers.length > 1 ? "s" : ""}: ${offers.map((offer) => `$${offer.usd} (${offer.priceBasis}; ${offer.eligibility})`).join("; ")}.` : ""}`,
+    detail: `${latest.eligibility}.${current ? ` Current price observed on ${current.date}; this is not a dated price change.` : ""}${offers.length ? ` Other current offer${offers.length > 1 ? "s" : ""}: ${offers.map((offer) => `$${offer.usd} (${offer.priceBasis}; ${offer.eligibility})`).join("; ")}.` : ""}`,
     series: history.map((point) => ({ label: new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${point.date}T00:00:00Z`)), value: point.usd })),
     source: latest.sourceUrl,
-    offerSources: offers.map((offer) => ({ label: `${offer.priceBasis} offer ↗`, source: offer.sourceUrl })),
+    offerSources: offers.map((offer) => ({ label: `${offer.priceBasis[0].toUpperCase()}${offer.priceBasis.slice(1)} offer ↗`, source: offer.sourceUrl })),
     basis: latest.priceBasis,
     periodDays: latest.periodDays,
   };
