@@ -126,6 +126,6 @@
 /* Keep Explore controls in a predictable lane beside the details panel. */
 @media(min-width:701px){
 	.intro{min-height:clamp(420px,calc(100svh - 300px),700px)}
-	.scene-hint{position:relative;top:-32px;left:auto;display:flex;width:min(60vw,850px);margin:0 0 12px 3.3%}
+	.scene-hint{position:relative;top:-80px;left:auto;display:flex;width:min(60vw,850px);margin:0 0 12px 3.3%}
 	.orbit-dock{width:min(60vw,850px);margin:0 0 32px 3.3%}
 }

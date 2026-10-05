@@ -247,7 +247,7 @@
 
       line3([[0,0,z],[2.5,0,z],[2.5,Y,z]],grid,1);
 
-      text3('$'+dollars,2.5,Y,z,'left',12,'#b5c6de',10,4);
+      text3('$'+dollars,2.5,Y,z,'left',16,'#b5c6de',10,4);
 
     }
 
@@ -257,7 +257,7 @@
 
     line3([[0,0,0],[0,0,Z],[2.5,0,Z],[2.5,Y,Z],[2.5,Y,0]],frame,1.2);
 
-    text3('USD PER SUPPLY',2.5,Y,Z*.65,'left',12,'#aabbd3',20,-8);
+    text3('USD PER SUPPLY',2.5,Y,Z*.65,'left',16,'#aabbd3',20,-8);
 
     drawLaneLabels();
 
@@ -265,9 +265,9 @@
 
   function drawLaneLabels(){
 
-    const fontSize=keys.length>28?9:keys.length>15?10:12;
+    const fontSize=keys.length>28?13:keys.length>15?14:16;
 
-    const maxLabelWidth=Math.min(210,Math.max(100,geo.w*.34));
+    const maxLabelWidth=Math.min(280,Math.max(140,geo.w*.34));
 
     ctx.font=`${fontSize}px Inter, system-ui, sans-serif`;
 
