@@ -129,3 +129,7 @@
 	.scene-hint{position:relative;top:-80px;left:auto;display:flex;width:min(60vw,850px);margin:0 0 12px 3.3%}
 	.orbit-dock{width:min(60vw,850px);margin:0 0 32px 3.3%}
 }
+
+.wegovy-variants{display:flex;gap:8px;margin-top:18px}
+.wegovy-variants button{padding:8px 14px;border:1px solid #4a5d76;border-radius:6px;background:#081527;color:#d9e5f1;font-size:13px;cursor:pointer}
+.wegovy-variants button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 18%,#0a1b30);color:#fff}

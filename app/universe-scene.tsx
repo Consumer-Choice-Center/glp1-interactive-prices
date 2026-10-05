@@ -11,7 +11,7 @@ function buildProduct(p:Product,dose:string){const g=new THREE.Group();g.userDat
   cylinder(.35,.35,3.05,0,white);cylinder(.39,.39,.52,1.78,silver);cylinder(.37,.37,.15,2.12,dark);cylinder(.38,.38,.29,-1.66,dark);cylinder(.375,.375,.16,-1.53,accent);
   // The colour sleeve is a substantial part of the pen, matching each labeled strength.
   cylinder(.36,.36,1.25,-.67,accent);cylinder(.365,.365,.045,.32,accent);
-  const label=new THREE.Mesh(new THREE.CylinderGeometry(.371,.371,1.18,64,1,true,-1.03,2.06),new THREE.MeshBasicMaterial({map:makePenLabel(p.name,p.id==="wegovy-hd"?"7.2 mg · semaglutide":p.id==="saxenda"?"liraglutide injection":"semaglutide injection",dose,displayAccent),side:THREE.DoubleSide}));label.position.set(0,-.69,0);g.add(label);
+  const label=new THREE.Mesh(new THREE.CylinderGeometry(.371,.371,1.18,64,1,true,-1.03,2.06),new THREE.MeshBasicMaterial({map:makePenLabel(p.name,p.id==="wegovy-hd"?"7.2 mg · semaglutide":"semaglutide injection",dose,displayAccent),side:THREE.DoubleSide}));label.position.set(0,-.69,0);g.add(label);
   g.rotation.z=-.72;
  }else if(p.model==="vial"){
   const glass=new THREE.MeshPhysicalMaterial({color:0xd8edfb,transparent:true,opacity:.35,metalness:.02,roughness:.06,transmission:.72,thickness:.5,side:THREE.DoubleSide});cylinder(.72,.7,2.36,-.38,glass);cylinder(.68,.68,.12,-1.58,white);cylinder(.6,.6,.25,.94,glass);cylinder(.78,.78,.34,1.22,silver);cylinder(.67,.67,.065,1.41,dark);cylinder(.55,.55,.55,-1.05,new THREE.MeshPhysicalMaterial({color:0x91d3eb,transparent:true,opacity:.32}));
