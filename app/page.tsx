@@ -6,33 +6,113 @@ import UniverseScene from "./universe-scene";
 import PolicyStory from "./policy-story";
 import PriceLandscape from "./price-landscape";
 import { productDoseColor } from "./dose-colors";
-import { getExplorePrice } from "../data/glp1-prices";
+import { getExplorePrice, type ChartPoint, type ChartSeries } from "../data/glp1-prices";
 import "./universe.css";
 
 type Drug = { id:string; name:string; molecule:string; maker:"Novo Nordisk"|"Eli Lilly"; form:string; approved:string; doses:string[]; note:string; accent:string; source:string; sourceName:string; model:"pen"|"vial"|"bottle"; };
 
 const drugs:Drug[] = [
-  {id:"wegovy",name:"Wegovy",molecule:"semaglutide",maker:"Novo Nordisk",form:"Weekly single-dose injection",approved:"Jun 2021",doses:["0.25","0.5","1","1.7","2.4"],note:"Five weekly pen strengths. The 2.4 mg dose is the usual recommended maintenance dose.",accent:"#79c8f7",model:"pen",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215256s033lbl.pdf",sourceName:"FDA prescribing information"},
-  {id:"zepbound",name:"Zepbound",molecule:"tirzepatide · GIP / GLP-1",maker:"Eli Lilly",form:"Weekly injection · pen, vial or KwikPen",approved:"Nov 2023",doses:["2.5","5","7.5","10","12.5","15"],note:"Six strengths available in a vial.",accent:"#ffbe78",model:"vial",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/217806Orig1s020lbl.pdf",sourceName:"FDA prescribing information"},
+  {id:"wegovy",name:"Wegovy",molecule:"semaglutide",maker:"Novo Nordisk",form:"Weekly single-dose injection",approved:"Jun 2021",doses:["0.25","0.5","1","1.7","2.4"],note:"Wegovy is available in five strengths for once-weekly injection. The 2.4 mg dose is the usual recommended maintenance dose.",accent:"#79c8f7",model:"pen",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215256s033lbl.pdf",sourceName:"FDA prescribing information"},
+  {id:"zepbound",name:"Zepbound",molecule:"tirzepatide",maker:"Eli Lilly",form:"Weekly injection · pen, vial or KwikPen",approved:"Nov 2023",doses:["2.5","5","7.5","10","12.5","15"],note:"Six strengths available in a vial.",accent:"#ffbe78",model:"vial",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/217806Orig1s020lbl.pdf",sourceName:"FDA prescribing information"},
   {id:"oral-wegovy",name:"Wegovy pill",molecule:"semaglutide",maker:"Novo Nordisk",form:"Daily tablet",approved:"Dec 2025",doses:["1.5","4","9","25"],note:"The first oral GLP-1 approved in the U.S. for weight management. Approved Dec 22, 2025, before Foundayo.",accent:"#ee99c4",model:"bottle",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/218316Orig1s000lbl.pdf",sourceName:"FDA tablet label"},
   {id:"wegovy-hd",name:"Wegovy HD",molecule:"semaglutide",maker:"Novo Nordisk",form:"Weekly single-dose injection",approved:"Mar 2026",doses:["7.2"],note:"A higher semaglutide dose for eligible adults who have tolerated 2.4 mg for at least four weeks and need further weight reduction.",accent:"#c6a3f4",model:"pen",source:"https://www.fda.gov/news-events/press-announcements/fda-approves-fourth-product-under-national-priority-voucher-program-higher-dose-semaglutide",sourceName:"FDA approval announcement"},
   {id:"foundayo",name:"Foundayo",molecule:"orforglipron",maker:"Eli Lilly",form:"Daily tablet",approved:"Apr 2026",doses:["0.8","2.5","5.5","9","14.5","17.2"],note:"Lilly’s oral GLP-1 was approved Apr 1, 2026 and became available Apr 9, about three months after oral Wegovy’s U.S. arrival.",accent:"#f5a88f",model:"bottle",source:"https://www.fda.gov/news-events/press-announcements/fda-approves-first-new-molecular-entity-under-national-priority-voucher-program",sourceName:"FDA approval announcement"}
 ];
 
-function ExplorePriceLineChart({ points, color, expanded = false }: { points: { label: string; value: number }[]; color: string; expanded?: boolean }) {
- if (points.length === 0) return <p className="price-chart-empty">No dated regular-price changes are available for this dose.</p>;
- const width=900, height=expanded?410:220, left=58, right=24, top=30, bottom=expanded?52:42;
- const values=points.map(point=>point.value);
- const min=Math.max(0,Math.floor(Math.min(...values)/100)*100-100);
- const max=Math.ceil(Math.max(...values)/100)*100+100;
- const x=(index:number)=>left+(index/Math.max(1,points.length-1))*(width-left-right);
- const y=(value:number)=>top+((max-value)/Math.max(1,max-min))*(height-top-bottom);
- const line=points.map((point,index)=>`${x(index)},${y(point.value)}`).join(" ");
- return <svg className="explore-price-line" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Price history line chart">
-  {[0,1,2,3].map(row=>{const value=max-(max-min)*row/3;return <g key={row}><line x1={left} y1={y(value)} x2={width-right} y2={y(value)}/><text x={left-7} y={y(value)+4} textAnchor="end">${Math.round(value)}</text></g>})}
-  <polyline points={line} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-  {points.map((point,index)=><g key={`${point.label}-${index}`}><circle cx={x(index)} cy={y(point.value)} r="4.5" fill={color}><title>{`${point.label}: $${point.value}`}</title></circle><text className="price-chart-date" x={x(index)} y={height-7} textAnchor="middle">{point.label}</text><text className="price-chart-value" x={x(index)} y={y(point.value)-10} textAnchor="middle">${point.value}</text></g>)}
- </svg>;
+function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chartSeries: ChartSeries[]; color: string; expanded?: boolean }) {
+ const [hoveredPoint,setHoveredPoint]=useState<ChartPoint|null>(null);
+ const isPriceOrOfferPoint=(point:ChartPoint)=>point.status!=="announced"&&point.event!=="Channel expansion";
+ const allPoints = chartSeries.flatMap(series => series.points).filter(isPriceOrOfferPoint);
+ if (allPoints.length === 0) return <p className="price-chart-empty">No dated regular-price changes are available for this dose.</p>;
+ const width=900, height=expanded?410:220, left=76, right=28, top=30, bottom=expanded?58:48;
+ const eventAxisInset=24;
+ const chartLeft=left+eventAxisInset, chartRight=width-right-eventAxisInset;
+ const chartWidth=chartRight-chartLeft;
+ const dates=[...new Set(allPoints.map(point=>point.date))].sort((a,b)=>a.localeCompare(b));
+ const dateIndex=new Map(dates.map((date,index)=>[date,index]));
+ const xForDate=(date:string)=>{
+   const index=dateIndex.get(date) ?? 0;
+   const ratio=dates.length===1?0.5:index/(dates.length-1);
+   return chartLeft+ratio*chartWidth;
+ };
+ const values=allPoints.map(point=>point.value);
+ const yAxisMax=Math.max(200,Math.ceil(Math.max(...values)/200)*200);
+ const y=(value:number)=>top+((yAxisMax-value)/yAxisMax)*(height-top-bottom);
+ const axisLabelStyle={ fontSize:"clamp(14px, 1vw, 16px)", fontWeight:600, fontFamily:"'Montserrat', Arial, sans-serif", fill:"#59617f" } as const;
+ const pointLabelStyle={ fontSize:"clamp(15px, 1.08vw, 16px)", fontWeight:600, fontFamily:"'Montserrat', Arial, sans-serif", fill:"#1d283d" } as const;
+ const formatMonthYear=(date:string)=>new Intl.DateTimeFormat("en-US",{month:"short",year:"numeric",timeZone:"UTC"}).format(new Date(`${date}T00:00:00Z`));
+ const regularObservationDates=allPoints.filter(point=>point.status==="observed"&&point.basis==="regular").map(point=>point.date).sort();
+ const finalObservationDate=regularObservationDates.at(-1);
+ const tickCandidates=dates.filter(date=>allPoints.some(point=>point.date===date&&point.basis==="regular"&&point.status!=="announced"&&point.displayMode!=="marker"));
+ for(const date of dates){
+  if(allPoints.some(point=>point.date===date&&(point.basis==="conditional"||point.basis==="introductory"||point.basis==="temporary")&&point.status!=="announced"))tickCandidates.push(date);
+ }
+ if(finalObservationDate&&!tickCandidates.includes(finalObservationDate))tickCandidates.push(finalObservationDate);
+ const visibleTicksByMonth=new Map<string,string>();
+ for(const date of tickCandidates.sort((a,b)=>a.localeCompare(b))){
+   const monthKey=date.slice(0,7);
+   if(!visibleTicksByMonth.has(monthKey)||date===finalObservationDate)visibleTicksByMonth.set(monthKey,date);
+ }
+ const visibleTickDates=[...visibleTicksByMonth.values()].sort((a,b)=>a.localeCompare(b));
+ return <>
+ <svg className="explore-price-line" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Price history line chart">
+  {Array.from({length:yAxisMax/200+1},(_,row)=>{const value=yAxisMax-row*200;return <g key={value}><line x1={left} y1={y(value)} x2={width-right} y2={y(value)}/><text x={left-12} y={y(value)+4} textAnchor="end" style={axisLabelStyle}>${value}</text></g>})}
+  {chartSeries.map(series => {
+    const basis = series.basis.toLowerCase();
+    const dash = basis === "conditional" ? "8 6" : basis === "introductory" || basis === "temporary" ? "3 5" : undefined;
+    const visiblePoints=series.points.filter(isPriceOrOfferPoint);
+    const sortedPoints=visiblePoints.filter(point=>point.displayMode!=="marker").slice().sort((a,b)=>a.date.localeCompare(b.date));
+    const polylinePoints=sortedPoints.map(point=>`${xForDate(point.date)},${y(point.value)}`).join(" ");
+    return <g key={series.key}>
+      {series.showLine && <polyline points={polylinePoints} fill="none" stroke={color} strokeDasharray={dash} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+      {visiblePoints.map((point,index)=>{
+        const pointX=xForDate(point.date);
+        const pointY=y(point.value);
+        const priceLabelY=point.basis==="conditional"||point.basis==="temporary"||point.basis==="introductory"
+          ? pointY+18
+          : point.announcement?pointY-22:pointY-10;
+        const tooltip=[
+          point.date,
+          `$${point.value} / ${point.periodDays} days`,
+          `Basis: ${point.basis}`,
+          `Status: ${point.status}`,
+          `Event: ${point.event}`,
+          `Channel: ${point.channel}`,
+          point.note,
+          point.effectiveUntil ? `Effective until: ${point.effectiveUntil}` : undefined,
+          `Source: ${point.sourceUrl}`,
+        ].filter(Boolean).join("\n");
+        return <g key={`${point.id}-${index}`} onMouseEnter={()=>setHoveredPoint(point)} onMouseLeave={()=>setHoveredPoint(null)}>
+          <circle cx={pointX} cy={y(point.value)} r={point.displayMode==="marker"?"6":"4.5"} fill={point.announcement||point.displayMode==="marker"?"white":color} stroke={color} tabIndex={0} role="img" aria-label={tooltip} onFocus={()=>setHoveredPoint(point)} onBlur={()=>setHoveredPoint(null)}><title>{tooltip}</title></circle>
+          {point.displayMode!=="marker"&&<text className="price-chart-value" x={pointX} y={priceLabelY} textAnchor="middle" style={pointLabelStyle}>{point.announcement?"From ":""}${point.value}</text>}
+        </g>;
+      })}
+    </g>;
+  })}
+  {visibleTickDates.map(date=>{const tickX=xForDate(date);return <g key={date}><line x1={tickX} y1={height-bottom+3} x2={tickX} y2={height-bottom+8} stroke="#7b8298"/><text className="price-chart-date" x={tickX} y={height-10} textAnchor="middle" style={axisLabelStyle}>{formatMonthYear(date)}</text></g>})}
+  {hoveredPoint&&(()=>{
+    const tipWidth=292, tipHeight=108, pointX=xForDate(hoveredPoint.date), pointY=y(hoveredPoint.value);
+    const tipX=Math.max(left,Math.min(pointX-tipWidth/2,width-right-tipWidth));
+    const tipY=pointY>top+tipHeight+12?pointY-tipHeight-12:top+6;
+    const basisText=hoveredPoint.basis[0].toUpperCase()+hoveredPoint.basis.slice(1);
+    const eventText=`${basisText} · ${hoveredPoint.event}`.slice(0,44);
+    const channelText=`${hoveredPoint.status[0].toUpperCase()+hoveredPoint.status.slice(1)} · ${hoveredPoint.channel}`.slice(0,44);
+    return <g className="chart-hover-card" pointerEvents="none">
+      <rect x={tipX} y={tipY} width={tipWidth} height={tipHeight} rx="8"/>
+      <text x={tipX+13} y={tipY+22} className="chart-hover-date">{hoveredPoint.date}</text>
+      <text x={tipX+13} y={tipY+45} className="chart-hover-price">${hoveredPoint.value} / {hoveredPoint.periodDays} days</text>
+      <text x={tipX+13} y={tipY+65} className="chart-hover-detail">{eventText}</text>
+      <text x={tipX+13} y={tipY+83} className="chart-hover-detail">{channelText}</text>
+      {hoveredPoint.note&&<text x={tipX+13} y={tipY+101} className="chart-hover-detail">{hoveredPoint.note.length>43?`${hoveredPoint.note.slice(0,40)}…`:hoveredPoint.note}</text>}
+    </g>;
+  })()}
+ </svg>
+ <div className="price-chart-legend" aria-label="Chart legend">
+   <span><i className="legend-line legend-line-regular" style={{"--legend-color":color} as React.CSSProperties}/>Regular price</span>
+   <span><i className="legend-line legend-line-conditional" style={{"--legend-color":color} as React.CSSProperties}/>Conditional offer</span>
+  <span><i className="legend-marker" style={{"--legend-color":color} as React.CSSProperties}/>Introductory / temporary offer</span>
+ </div>
+ </>;
 }
 
 export default function Page(){
@@ -58,7 +138,7 @@ export default function Page(){
     <h2>{item.name}</h2><div className="molecule">{item.molecule}</div><div className="thin-rule"/>
     <div className="fact-row"><span>FORMAT</span><strong>{item.form}</strong></div><div className="fact-row"><span>FDA APPROVAL</span><strong>{item.approved}</strong></div>
     <div className="dose-head"><span>DOSE OPTIONS</span><span>CURRENT PRICE</span></div><div className="dose-grid">{item.doses.map(n=>{const dosePrice=getExplorePrice(item.name,n,item.model==="vial"?"Vial":item.model==="bottle"?"Tablet":"Pen");return <button key={n} className={dose===n?"selected":""} style={{"--dose-accent":productDoseColor(item.id,n,item.accent)} as React.CSSProperties} onClick={()=>setDose(n)} aria-pressed={dose===n} aria-label={`${n} mg, current snapshot ${dosePrice?.headline??"price unavailable"}`}><span className="dose-value">{n}<small>mg</small></span><span className="dose-price">{dosePrice?.headline??"—"}</span></button>})}</div>
-    {displayedPrice && <div className="price-module dose-price-chart"><div className="price-title"><span>{item.name.toUpperCase()} · {dose} MG · PRICE HISTORY</span><strong>{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></strong></div><button type="button" className="expand-chart-button" onClick={()=>setChartExpanded(true)} aria-label="Expand price chart"><Expand size={15}/> Expand chart</button><ExplorePriceLineChart points={displayedPrice.series} color={selectedAccent}/><p>{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></div>}
+    {displayedPrice && <div className="price-module dose-price-chart"><div className="price-title"><span>{item.name.toUpperCase()} · {dose} MG · PRICE HISTORY</span><strong>{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></strong></div><button type="button" className="expand-chart-button" onClick={()=>setChartExpanded(true)} aria-label="Expand price chart"><Expand size={15}/> Expand chart</button><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent}/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></div>}
     <p className="item-note">{item.note}</p>
     <a className="source-link" href={item.source} target="_blank" rel="noreferrer">{item.sourceName} <ArrowUpRight size={15}/></a>
    </aside>
@@ -73,6 +153,6 @@ export default function Page(){
   </div>
   <div className="compare-insight"><span>THE TIMELINE, CORRECTED</span><p>Oral Wegovy was FDA-approved on <b>December 22, 2025</b>. Foundayo followed on <b>April 1, 2026</b>. Wegovy HD’s 7.2 mg is the highest <i>semaglutide</i> weekly injection dose in this lineup; milligrams across different molecules do not rank their strength or effectiveness. This summary is for educational use and not a substitute for medical guidance.</p><div><a href="https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/218316Orig1s000lbl.pdf" target="_blank" rel="noreferrer">Oral Wegovy FDA label ↗</a><a href="https://www.fda.gov/news-events/press-announcements/fda-approves-first-new-molecular-entity-under-national-priority-voucher-program" target="_blank" rel="noreferrer">Foundayo FDA approval ↗</a></div></div><p className="method-note">Scope: branded FDA-approved weight-management GLP-1 receptor agonists and tirzepatide (dual GIP/GLP-1), through September 2026. Diabetes-only brands and compounded products are excluded. Wegovy injection and HD are shown separately to make the new 7.2 mg presentation visible; they share semaglutide and the Wegovy brand. Pricing, where shown, is a manufacturer self-pay offer for a specified dose/channel, not list or net price. The 3D objects are stylized illustrations, not product photographs.</p></section>}
   <footer className="site-footer"><span>RESEARCH & DESIGN · ARACELI VARGAS</span><span>PRODUCT INFORMATION ONLY · NOT MEDICAL ADVICE</span></footer>
-  {chartExpanded&&displayedPrice&&<div className="chart-modal-backdrop" onClick={()=>setChartExpanded(false)}><section className="chart-modal" role="dialog" aria-modal="true" aria-labelledby="expanded-chart-title" onClick={event=>event.stopPropagation()}><div className="chart-modal-heading"><div><span className="panel-kicker">PRICE HISTORY · {item.name.toUpperCase()} · {dose} MG</span><h2 id="expanded-chart-title">{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></h2></div><button type="button" onClick={()=>setChartExpanded(false)} aria-label="Close expanded chart"><X size={20}/></button></div><ExplorePriceLineChart points={displayedPrice.series} color={selectedAccent} expanded/><p>{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></section></div>}
+  {chartExpanded&&displayedPrice&&<div className="chart-modal-backdrop" onClick={()=>setChartExpanded(false)}><section className="chart-modal" role="dialog" aria-modal="true" aria-labelledby="expanded-chart-title" onClick={event=>event.stopPropagation()}><div className="chart-modal-heading"><div><span className="panel-kicker">PRICE HISTORY · {item.name.toUpperCase()} · {dose} MG</span><h2 id="expanded-chart-title">{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></h2></div><button type="button" onClick={()=>setChartExpanded(false)} aria-label="Close expanded chart"><X size={20}/></button></div><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent} expanded/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></section></div>}
  </main>
 }

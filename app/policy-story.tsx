@@ -34,7 +34,7 @@ function PriceHistoryChart({ points }: { points: PricePoint[] }) {
   const lastDate = Date.parse("2026-09-28T00:00:00Z");
   const x = (time: number) => inset.left + ((time - firstDate) / (lastDate - firstDate)) * (width - inset.left - inset.right);
   const y = (value: number) => height - inset.bottom - ((value - min) / Math.max(1, max - min)) * (height - inset.top - inset.bottom);
-  const coords = points.map((point, index) => `${x(dateTimes[index])},${y(point.usd)}`).join(" ");
+  const chartColor = products.find(product => product.product === points[0].product)?.color ?? "#68d2ff";
   const policyDate = Date.parse(`${policyEvents[0].date}T00:00:00Z`);
   const ticks = [
     { date: "2024-08-27", label: "Aug ’24" },
@@ -46,13 +46,13 @@ function PriceHistoryChart({ points }: { points: PricePoint[] }) {
     <>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img" aria-label="Dated regular self-pay price history">
         {[0, 1, 2, 3, 4].map((row) => { const value = max - ((max - min) * row) / 4; return <g key={row} className="policy-chart-grid"><line x1={inset.left} y1={y(value)} x2={width - inset.right} y2={y(value)} /><text x={inset.left - 9} y={y(value) + 4} textAnchor="end">${Math.round(value)}</text></g>; })}
-        <polyline points={coords} fill="none" stroke={products.find((product) => product.product === points[0].product)?.color ?? "#68d2ff"} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        {["regular", "conditional", "temporary"].map(basis => <polyline key={basis} points={points.filter(point => point.status !== "announced" && point.priceBasis === basis).map(point => `${x(Date.parse(`${point.date}T00:00:00Z`))},${y(point.usd)}`).join(" ")} fill="none" stroke={chartColor} strokeWidth="4" strokeDasharray={basis === "regular" ? undefined : "5 4"} />)}
         <g className="policy-timeline-marker"><line x1={x(policyDate)} y1={inset.top} x2={x(policyDate)} y2={height - inset.bottom}/><rect x={x(policyDate) - 48} y="2" width="96" height="19" rx="9"/><text x={x(policyDate)} y="15" textAnchor="middle">MFN · NOV 6 ’25</text></g>
-        {points.map((point, index) => <g key={point.id} className="policy-timeline-point"><circle cx={x(dateTimes[index])} cy={y(point.usd)} r="6" fill={products.find((product) => product.product === point.product)?.color ?? "#68d2ff"}><title>{`${point.date}: $${point.usd} · ${point.event}`}</title></circle><text x={x(dateTimes[index])} y={y(point.usd) - 10} textAnchor="middle">${point.usd}</text></g>)}
+        {points.map((point, index) => <g key={point.id} className="policy-timeline-point"><circle cx={x(dateTimes[index])} cy={y(point.usd)} r="6" fill={products.find((product) => product.product === point.product)?.color ?? "#68d2ff"}><title>{`${point.date}: ${point.status === "announced" ? "Starting at " : ""}$${point.usd} · ${point.event} · ${point.priceBasis}`}</title></circle><text x={x(dateTimes[index])} y={y(point.usd) - 10} textAnchor="middle">${point.usd}</text></g>)}
         {ticks.map((tick) => <text className="policy-timeline-date" key={tick.date} x={x(Date.parse(`${tick.date}T00:00:00Z`))} y={height - 12} textAnchor="middle">{tick.label}</text>)}
       </svg>
       <div className="chart-points" aria-label="Dated chart values">
-        {points.map((point) => <span key={point.id}>{new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${point.date}T00:00:00Z`))}: <strong>${point.usd}</strong></span>)}
+        {points.map((point) => <span key={point.id}>{new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${point.date}T00:00:00Z`))}: <strong>{point.status === "announced" ? "Starting at " : ""}${point.usd}</strong> · {point.event} · {point.priceBasis}</span>)}
       </div>
     </>
   );
@@ -154,7 +154,7 @@ export default function PolicyStory() {
               <div className="chart-topline">
                 <div>
                   <span className="eyebrow">{selectedProduct.product} · {selectedProduct.dose} mg</span>
-                  <h3>Dated regular-price history</h3>
+                  <h3>{selectedProduct.product === "Foundayo" ? "Foundayo price events" : "Dated regular-price history"}</h3>
                 </div>
                 <strong>{snapshot ? `$${snapshot.usd}` : "—"}</strong>
               </div>
@@ -164,7 +164,7 @@ export default function PolicyStory() {
               </div>
 
               <div className="chart-note">
-                {snapshot ? <>Current observed snapshot: ${snapshot.usd} per {snapshot.periodDays} days ({snapshot.form}, {snapshot.dose}); observed on {snapshot.date}. This snapshot is not treated as a dated price change. <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">Snapshot source ↗</a></> : "No current observed snapshot is included for this product and dose."} {history[0] && <>Historical dots show sourced available regular offers only. <a href={history[history.length - 1].sourceUrl} target="_blank" rel="noreferrer">Latest historical source ↗</a></>}
+                {snapshot ? <>Current observed snapshot: ${snapshot.usd} per {snapshot.periodDays} days ({snapshot.form}, {snapshot.dose}); observed on {snapshot.date}. This snapshot is not treated as a dated price change. <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">Snapshot source ↗</a></> : "No current observed snapshot is included for this product and dose."} {history[0] && <>{selectedProduct.product === "Foundayo" ? "Chart dots show announcement, regular, conditional, and temporary price events; current snapshots remain separate." : "Historical dots show sourced available regular offers only."} <a href={history[history.length - 1].sourceUrl} target="_blank" rel="noreferrer">Latest historical source ↗</a></>}
               </div>
               {policyEvents.map((event) => (
                 <div className="policy-event-note" key={event.date}>
@@ -219,6 +219,13 @@ export default function PolicyStory() {
                   <div>
                     <strong>{item.title}</strong>
                     <p>{item.text}</p>
+                    {item.number === "01" && <div className="competition-details">
+                      <h3>Competition</h3>
+                      <p><strong>Launch price undercutting:</strong> Eli Lilly announced Zepbound’s U.S. launch list price at $1,059.87 per month, about 21% below Wegovy’s $1,349 list price. This positioned Zepbound below its branded rival at launch. <a href="https://investor.lilly.com/news-releases/news-release-details/fda-approves-lillys-Zepboundtm-tirzepatide-chronic-weight" target="_blank" rel="noreferrer">Launch pricing source ↗</a></p>
+                      <p><strong>Subsequent cash-price reductions:</strong> LillyDirect expanded its single-dose vial offering and lowered self-pay prices by dose. In February 2025, the 2.5 mg and 5 mg prices fell from $399 to $349 and from $549 to $499, respectively, per 28-day supply. <a href="https://investor.lilly.com/news-releases/news-release-details/lilly-launches-additional-zepbound-vial-doses-and-offers-new" target="_blank" rel="noreferrer">Cash-price reductions source ↗</a></p>
+                      <p><strong>Dose-specific price structure:</strong> Zepbound launched with the same list price across its six strengths, while LillyDirect’s vial cash prices varied by dose and offer eligibility. A cheaper starting dose reduced the initial purchase cost compared with higher-dose supplies; refill-program discounts could narrow that gap. <a href="https://investor.lilly.com/news-releases/news-release-details/lilly-releases-zepboundr-tirzepatide-single-dose-vials-expanding" target="_blank" rel="noreferrer">Vial pricing source ↗</a></p>
+                      <p><a href="https://ideas.repec.org/a/bla/jemstr/v11y2002i1p135-168.html" target="_blank" rel="noreferrer">Related research: brand and generic pharmaceutical competition ↗</a></p>
+                    </div>}
                   </div>
                 </li>
               ))}

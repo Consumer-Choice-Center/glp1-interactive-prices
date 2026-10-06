@@ -184,3 +184,7 @@
   .policy-story-page .dashboard, .policy-story-page .timeline-section, .policy-story-page .mechanism, .policy-story-page .caveat { min-height: auto; }
   .policy-story-page .mechanism { padding-top: 5rem; }
 }
+
+.competition-details{margin-top:22px;padding-top:18px;border-top:1px solid #ffffff26}
+.competition-details h3{margin:0 0 14px;font-size:20px}
+.competition-details a{color:inherit;text-decoration:underline;text-underline-offset:3px}

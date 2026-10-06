@@ -31,7 +31,7 @@ export default function PriceLandscape() {
       <iframe
         ref={iframeRef}
         title="Interactive three-dimensional GLP-1 price landscape"
-        src="/glp1-copy-paste.html"
+        src="/interactive-price-chart"
         style={{ display: "block", width: "100%", height: 580, border: 0 }}
         loading="lazy"
         scrolling="no"

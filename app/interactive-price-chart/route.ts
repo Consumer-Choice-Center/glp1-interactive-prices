@@ -1,4 +1,4 @@
-import chartDocument from "../glp1-3d-price-chart.html?raw";
+import chartDocument from "../glp1-price-landscape.html?raw";
 
 export function GET() {
   return new Response(chartDocument, {
