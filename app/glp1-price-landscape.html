@@ -12,34 +12,39 @@
 
   <style>
 
-    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
 
     * { box-sizing: border-box; }
 
     html, body { width: 100%; height: auto; min-height: 0; overflow-x: hidden; }
 
-    body { margin: 0; background: #06132b; color: #f5f7ff; }
+    body { margin: 0; background: #fff7ef; color: #17212f; }
 
-    .app { width: 100%; min-height: 0; padding: 12px clamp(12px, 2vw, 24px) 14px; background: #06132b; }
+    .app { width: 100%; min-height: 0; padding: 12px clamp(12px, 2vw, 24px) 14px; background: #fff7ef; }
 
-    header { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+    header { display: flex; justify-content: center; text-align: center; margin: 20px auto 24px; }
 
-    .eyebrow { color: #ffb054; font-size: clamp(14px,1.5vw,22px); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .eyebrow { color: #8a4515; font-size: clamp(14px,1.5vw,22px); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 
     h1 { font-size: clamp(27px, 3vw, 42px); line-height: 1.08; margin: 8px 0 6px; letter-spacing: -.04em; }
 
-    .sub { color: #abc0ce; margin: 0; font-size: 14px; line-height: 1.5; }
+    .sub { color: #475569; margin: 0; font-size: 14px; line-height: 1.5; }
 
-    .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; color: #bfd2df; font-size: 13px; }
+    .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; color: #334155; font-size: 13px; }
 
-    .legend span { white-space: nowrap; }
+    .legend span { white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
 
     .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-     .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 10px; border: 1px solid #25415d; border-radius: 11px; background: #0b1d38; }
+    .point-legend { justify-content: center; margin: 14px 0; color: #334155; font-weight: 700; }
+    .point-symbol { display: inline-block; width: 12px; height: 12px; margin-right: 8px; background: #334155; vertical-align: middle; }
+    .point-regular { border-radius: 50%; }
+    .point-temporary { transform: rotate(45deg); }
+    .point-conditional { clip-path: polygon(50% 0,100% 100%,0 100%); }
+     .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 10px; border: 1px solid #d3dae3; border-radius: 11px; background: #f5f7fa; }
 
-    label { display: grid; gap: 5px; font-size: 12px; color: #aac6d5; font-weight: 650; }
+    label { display: grid; gap: 5px; font-size: 12px; color: #475569; font-weight: 650; }
 
-    select, button { font: inherit; color: #eefaff; background: #102c44; border: 1px solid #3b657b; border-radius: 8px; min-height: 37px; padding: 7px 10px; cursor: pointer; }
+    select, button { font: inherit; color: #17212f; background: #fff7ef; border: 1px solid #aab8c8; border-radius: 8px; min-height: 37px; padding: 7px 10px; cursor: pointer; }
 
     select { min-width: 130px; max-width: 260px; }
 
@@ -49,7 +54,7 @@
 
     button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid #70e5f2; outline-offset: 2px; }
 
-    .toggle { align-self: center; display: flex; align-items: center; gap: 7px; font-size: 13px; color: #dfedf4; cursor: pointer; }
+    .toggle { align-self: center; display: flex; align-items: center; gap: 7px; font-size: 13px; color: #334155; cursor: pointer; }
      input[type=checkbox] { accent-color: #52d5e5; width: 16px; height: 16px; }
 
     .stage { margin-top: 8px; position: relative; }
@@ -58,9 +63,9 @@
 
     #plot { display:block; width: 100%; height: 380px; min-height: 0; touch-action: none; transition: height .22s ease; }
 
-    .hint { position: absolute; left: 16px; bottom: 12px; background: #071525dc; border: 1px solid #2b5870; padding: 8px 11px; border-radius: 8px; font-size: 12px; color: #c6dce7; pointer-events: none; }
+    .hint { position: absolute; left: 16px; bottom: 12px; background: #fff7eff0; border: 1px solid #2b5870; padding: 8px 11px; border-radius: 8px; font-size: 12px; color: #334155; pointer-events: none; }
 
-    .detail { display: none; position: absolute; right: 16px; top: 20px; z-index: 5; width: min(330px, calc(100% - 32px)); max-height: calc(100% - 35px); overflow: auto; padding: 18px; overflow-wrap: anywhere; border: 1px solid #496c87; border-radius: 12px; background: #0a2039f5; box-shadow: 0 14px 42px #0008; }
+    .detail { display: none; position: absolute; right: 16px; top: 20px; z-index: 5; width: min(330px, calc(100% - 32px)); max-height: calc(100% - 35px); overflow: auto; padding: 18px; overflow-wrap: anywhere; border: 1px solid #496c87; border-radius: 12px; background: #fff7eff5; box-shadow: 0 14px 42px #0008; }
 
     .detail.open { display: block; }
 
@@ -68,21 +73,21 @@
 
     .detail h2 { font-size: 19px; line-height: 1.25; margin: 0 0 16px; }
 
-    .detail .empty { color: #abc0ce; line-height: 1.55; }
+    .detail .empty { color: #475569; line-height: 1.55; }
 
     .detail dl { margin: 0; display: grid; gap: 12px; }
 
-    .detail dt { color: #8eacbe; font-size: 12px; margin-bottom: 2px; }
+    .detail dt { color: #526174; font-size: 12px; margin-bottom: 2px; }
 
     .detail dd { margin: 0; font-size: 14px; line-height: 1.45; }
 
-    .amount { font-size: 32px !important; color: #78e5f0; font-weight: 780; }
+    .amount { font-size: 32px !important; color: #086779; font-weight: 780; }
 
-    .source { display: inline-block; margin-top: 18px; color: #70dce9; text-decoration: underline; text-underline-offset: 3px; }
+    .source { display: inline-block; margin-top: 18px; color: #086779; text-decoration: underline; text-underline-offset: 3px; }
 
-    .note { color: #9cb4c3; font-size: 12px; line-height: 1.5; margin: 8px 3px 0; }
+    .note { color: #526174; font-size: 12px; line-height: 1.5; margin: 8px 3px 0; }
 
-    .error { color: #ffcb9d; padding: 40px; }
+    .error { color: #9b4215; padding: 40px; }
 
     @media(max-width: 900px) { #plot { height: 380px; min-height: 0; max-height: 650px; } }
 
@@ -108,7 +113,7 @@
 
     <label>Price basis<select id="basis"><option value="all">All price bases</option><option value="regular">Regular</option><option value="conditional">Conditional</option><option value="introductory">Introductory</option><option value="temporary">Temporary</option></select></label>
 
-    <label>View<select id="view"><option value="story">Five-lane story</option><option value="all">Every dose and offer</option></select></label>
+    <label>View<select id="view"><option value="story">Price story</option><option value="all">Every dose and offer</option></select></label>
 
     <label>Focus lane<select id="lane"><option value="all">All visible lanes</option></select></label>
 
@@ -130,6 +135,12 @@
 
   </div>
 
+  <div class="legend point-legend" aria-label="Point shapes by price basis">
+    <span><i class="point-symbol point-regular" aria-hidden="true"></i>Regular price · circle</span>
+    <span><i class="point-symbol point-temporary" aria-hidden="true"></i>Temporary offer · diamond</span>
+    <span><i class="point-symbol point-conditional" aria-hidden="true"></i>Conditional offer · triangle</span>
+    <span><i class="point-symbol" aria-hidden="true"></i>Introductory offer · square</span>
+  </div>
   <p class="note">Flat translucent ribbons show documented price levels between dated events. Each lane is a distinct dose and offer. Wegovy pill: 30 tablets; injections: 28 days. The policy plane marks timing, not causation. Eligibility can change the price. Data through 28 September 2026.</p>
 
 </main>
@@ -150,7 +161,7 @@
 
   const order=['Zepbound','Wegovy','Wegovy HD','Wegovy pill','Foundayo'];
 
-  const colors={Zepbound:'#ff985c',Wegovy:'#56d9ef','Wegovy HD':'#80cce6','Wegovy pill':'#9dbbe7',Foundayo:'#b99ae9'};
+  const colors={Zepbound:'#ff985c',Wegovy:'#56d9ef','Wegovy HD':'#80cce6','Wegovy pill':'#9dbbe7',Foundayo:'#f5a88f'};
 
   const colorFor=p=>p.product==='Zepbound'&&p.priceBasis==='conditional'?'#ef744b':p.product==='Zepbound'&&p.dose==='5 mg'?'#efb17c':colors[p.product];
 
@@ -158,7 +169,7 @@
 
   const pretty=k=>{const [p,f,d,b]=k.split('|');return `${p} ${d} ${f}${b==='regular'?'':` · ${b}`}`};
 
-  const story=['Zepbound|vial|2.5 mg|regular','Zepbound|vial|5 mg|regular','Zepbound|vial|7.5 mg|conditional','Wegovy|pen|2.4 mg|regular','Wegovy pill|tablet|1.5 mg|regular'];
+  const story=['Zepbound|vial|2.5 mg|regular','Zepbound|vial|5 mg|regular','Zepbound|vial|7.5 mg|conditional','Wegovy|pen|2.4 mg|regular','Wegovy pill|tablet|1.5 mg|regular',...new Set(points.filter(p=>p.product==='Foundayo').map(laneKey))];
 
   const lanes=[...new Set(points.map(laneKey))].sort((a,b)=>{const x=a.split('|'),y=b.split('|');return order.indexOf(x[0])-order.indexOf(y[0])||x[1].localeCompare(y[1])||parseFloat(x[2])-parseFloat(y[2])||x[3].localeCompare(y[3])});
 
@@ -185,7 +196,7 @@
 
   function prepare(){
 
-    selected=points.map((p,i)=>({...p,i})).filter(p=>(els.view.value==='all'||story.includes(laneKey(p))||(els.product.value==='Foundayo'&&p.product==='Foundayo'))&&
+    selected=points.map((p,i)=>({...p,i})).filter(p=>(els.view.value==='all'||story.includes(laneKey(p))||(['Foundayo','Wegovy HD'].includes(els.product.value)&&p.product===els.product.value))&&
 
       (els.product.value==='all'||p.product===els.product.value)&&(els.basis.value==='all'||p.priceBasis===els.basis.value)&&
 
@@ -198,6 +209,24 @@
     ymap=new Map(keys.map((k,i)=>[k,keys.length-1-i]));
 
     maxPrice=els.view.value==='story'?700:1150;
+
+    const legend=document.querySelector('.point-legend');
+    legend.replaceChildren();
+    const legendEntries=new Set();
+    const basisNames={regular:'Regular price',temporary:'Temporary offer',conditional:'Conditional offer',introductory:'Introductory offer'};
+    for(const point of selected){
+      const color=colorFor(point),key=`${point.product}|${color}|${point.priceBasis}`;
+      if(legendEntries.has(key)) continue;
+      legendEntries.add(key);
+      const entry=document.createElement('span'),symbol=document.createElement('i');
+      entry.style.color=color;
+      symbol.className=`point-symbol point-${point.priceBasis}`;
+      symbol.style.background=color;
+      symbol.style.outline='1px solid #334155';
+      symbol.setAttribute('aria-hidden','true');
+      entry.append(symbol,document.createTextNode(`${point.product}${point.product==='Zepbound'?` ${point.dose}`:''} · ${basisNames[point.priceBasis]||point.priceBasis}`));
+      legend.append(entry);
+    }
 
     draw();
 
@@ -235,11 +264,36 @@
 
   function line3(points,color,width=1){ctx.beginPath();points.forEach(([x,y,z],i)=>{const p=geo.project(x,y,z);i?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
 
-  function text3(value,x,y,z,align='left',size=13,color='#b6c9df',dx=0,dy=0){const p=geo.project(x,y,z);ctx.fillStyle=color;ctx.font=`${size}px Inter, system-ui, sans-serif`;ctx.textAlign=align;ctx.fillText(value,p[0]+dx,p[1]+dy)}
+  let labelQueue=[];
+  const labelBoxes=[];
+  const boxesOverlap=(a,b)=>!(a.right+6<b.left||a.left-6>b.right||a.bottom+5<b.top||a.top-5>b.bottom);
+
+  function placeText(value,x,y,{size=13,color='#334155',align='left',leader=true,weight=400,point=null}={}){
+    ctx.font=`${weight} ${size}px Inter, system-ui, sans-serif`;
+    const width=ctx.measureText(value).width+12;
+    if(width>geo.w-12) return;
+    const baseX=align==='center'?x-width/2:align==='right'?x-width:x;
+    for(let step=0;step<Math.ceil(geo.h/(size+12));step++){
+      for(const sign of step===0?[1]:[-1,1]){
+        const top=y-size-4+step*(size+12)*sign;
+        const left=Math.max(6,Math.min(baseX,geo.w-width-6));
+        const box={left,right:left+width,top,bottom:top+size+10};
+        if(top<6||box.bottom>geo.h-6||labelBoxes.some(other=>boxesOverlap(box,other))) continue;
+        labelBoxes.push(box);
+        if(point) state.hit.push({p:point,box});
+        if(leader&&step>0){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(left+width/2,top+size/2);ctx.strokeStyle='#64748b80';ctx.lineWidth=.8;ctx.stroke();}
+        ctx.fillStyle='#fff7eff2';ctx.fillRect(left,top,width,size+10);
+        ctx.fillStyle=color;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(value,left+6,top+4);
+        return;
+      }
+    }
+  }
+
+  function text3(value,x,y,z,align='left',size=13,color='#334155',dx=0,dy=0,weight=400){const p=geo.project(x,y,z);labelQueue.push(()=>placeText(value,p[0]+dx,p[1]+dy,{align,size,color,weight,leader:weight!==700}));}
 
   function axes(){
 
-    const Y=geo.yMax,Z=geo.zMax,grid='#243b5b',frame='#47627f';
+    const Y=geo.yMax,Z=geo.zMax,grid='#e0e5ec',frame='#8292a6';
 
     for(const dollars of maxPrice===700?[0,150,300,450,600]:[0,200,400,600,800,1000]){
 
@@ -247,103 +301,21 @@
 
       line3([[0,0,z],[2.5,0,z],[2.5,Y,z]],grid,1);
 
-      text3('$'+dollars,2.5,Y,z,'left',16,'#b5c6de',10,4);
+      text3('$'+dollars,0,Y,z,'right',16,'#334155',-10,4);
 
     }
 
-    for(const [d,label] of dates){const x=dateX(d);line3([[x,0,0],[x,Y,0]],grid,1);const [px,py]=geo.project(x,Y,0);ctx.save();ctx.translate(px,py+16);ctx.rotate(Math.PI/4);ctx.fillStyle='#c5d5e9';ctx.font='12px Inter, system-ui, sans-serif';ctx.textAlign='left';ctx.fillText(label,0,0);ctx.restore()}
+    for(const [d,label] of dates){const x=dateX(d);line3([[x,0,0],[x,Y,0]],grid,1);text3(label,x,Y,0,'center',12,'#334155',0,22)}
 
     line3([[0,0,0],[2.5,0,0],[2.5,Y,0],[0,Y,0],[0,0,0]],frame,1.5);
 
     line3([[0,0,0],[0,0,Z],[2.5,0,Z],[2.5,Y,Z],[2.5,Y,0]],frame,1.2);
+    line3([[0,Y,0],[0,Y,Z]],frame,1.5);
 
-    text3('USD PER SUPPLY',2.5,Y,Z*.65,'left',16,'#aabbd3',20,-8);
+    text3('USD PER SUPPLY',0,Y,Z,'left',12,'#9a450f',-10,-24,700);
+    text3('DATE',1.25,Y,0,'center',12,'#9a450f',0,48,700);
 
-    drawLaneLabels();
 
-  }
-
-  function drawLaneLabels(){
-
-    const fontSize=keys.length>28?13:keys.length>15?14:16;
-
-    const maxLabelWidth=Math.min(280,Math.max(140,geo.w*.34));
-
-    ctx.font=`${fontSize}px Inter, system-ui, sans-serif`;
-
-    const candidates=keys.map((key,index)=>{
-
-      const lane=(keys.length-1-index+.5)*.35;
-
-      let label=pretty(key);
-
-      while(ctx.measureText(label).width>maxLabelWidth&&label.length>12) label=`${label.slice(0,-4)}…`;
-
-      return {key,lane,label,anchor:geo.project(2.5,lane,0),width:Math.min(maxLabelWidth,ctx.measureText(label).width+14)};
-
-    }).sort((a,b)=>a.anchor[1]-b.anchor[1]);
-
-    const placed=[];
-
-    for(const candidate of candidates){
-
-      const [anchorX,anchorY]=candidate.anchor;
-
-      const gap=Math.max(13,fontSize+5);
-
-      const offsets=[0];
-
-      for(let step=1;step<=Math.ceil(geo.h/gap);step++) offsets.push(step*gap,-step*gap);
-
-      let placement=null;
-
-      for(const offset of offsets){
-
-        const centerY=anchorY+offset;
-
-        if(centerY<fontSize+5||centerY>geo.h-fontSize-5) continue;
-
-        const rightX=anchorX+10;
-
-        const leftX=anchorX-candidate.width-10;
-
-        const options=[rightX,leftX].filter(x=>x>=4&&x+candidate.width<=geo.w-4);
-
-        for(const x of options){
-
-          const box={left:x,right:x+candidate.width,top:centerY-fontSize-4,bottom:centerY+5};
-
-          if(placed.every(other=>box.right+4<other.left||box.left-4>other.right||box.bottom+3<other.top||box.top-3>other.bottom)){
-
-            placement={x,centerY,box};
-
-            break;
-
-          }
-
-        }
-
-        if(placement) break;
-
-      }
-
-      if(!placement) continue;
-
-      placed.push(placement.box);
-
-      if(Math.abs(placement.centerY-anchorY)>fontSize+3){
-
-        ctx.beginPath();ctx.moveTo(anchorX,anchorY);ctx.lineTo(placement.x,placement.centerY-3);ctx.strokeStyle='rgba(196,212,233,.42)';ctx.lineWidth=.8;ctx.stroke();
-
-      }
-
-      ctx.fillStyle='rgba(6,19,43,.88)';ctx.fillRect(placement.box.left,placement.box.top,candidate.width,placement.box.bottom-placement.box.top);
-
-      ctx.fillStyle='#c4d4e9';ctx.font=`${fontSize}px Inter, system-ui, sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(candidate.label,placement.x+7,placement.centerY-1,candidate.width-12);
-
-    }
-
-    ctx.textBaseline='alphabetic';
 
   }
 
@@ -371,9 +343,9 @@
 
   function draw(){
 
-    setup();const {w,h}=geo;ctx.clearRect(0,0,w,h);ctx.fillStyle='#06132b';ctx.fillRect(0,0,w,h);
+    setup();labelQueue=[];labelBoxes.length=0;const {w,h}=geo;ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff7ef';ctx.fillRect(0,0,w,h);
 
-    if(!keys.length){ctx.fillStyle='#cfdae9';ctx.textAlign='center';ctx.font='16px system-ui';ctx.fillText('No price points match these filters.',w/2,h/2);return}
+    if(!keys.length){ctx.fillStyle='#475569';ctx.textAlign='center';ctx.font='16px system-ui';ctx.fillText('No price points match these filters.',w/2,h/2);return}
 
     axes();const faces=[];const grouped=new Map();
 
@@ -381,13 +353,13 @@
 
     for(const group of grouped.values()){
 
-      const events=group.filter(p=>p.kind==='available'&&['regular','conditional'].includes(p.priceBasis)).sort((a,b)=>a.date.localeCompare(b.date));
+      const events=group.filter(p=>p.kind==='available'&&(['regular','conditional'].includes(p.priceBasis)||(p.product==='Foundayo'&&p.priceBasis==='temporary'))).sort((a,b)=>a.date.localeCompare(b.date));
 
       const snapshots=group.filter(p=>p.kind==='snapshot').sort((a,b)=>a.date.localeCompare(b.date));
 
       for(let i=0;i<events.length;i++){
 
-        const a=events[i],next=events[i+1],same=snapshots.find(s=>s.date>a.date&&s.usd===a.usd),until=next?.date||same?.date;
+        const a=events[i],next=events[i+1],same=snapshots.find(s=>s.date>a.date&&s.usd===a.usd),until=next?.date||same?.date||(a.product==='Foundayo'?data.asOf:null);
 
         if(!until||until<=a.date)continue;
 
@@ -401,7 +373,7 @@
 
     faces.sort((a,b)=>a.depth-b.depth).forEach(f=>polygon(f.v,f.fill,f.edge));
 
-    if(els.policy.checked){const x=dateX(data.policyEvents[0].date);polygon([[x,0,0],[x,geo.yMax,0],[x,geo.yMax,geo.zMax],[x,0,geo.zMax]],'rgba(153,82,225,.27)','rgba(203,150,255,.87)');text3('NOV 6, 2025',x,0,geo.zMax,'left',13,'#edd3ff',8,-18);text3('policy announcement',x,0,geo.zMax,'left',12,'#edd3ff',8,-2)}
+    if(els.policy.checked){const x=dateX(data.policyEvents[0].date);polygon([[x,0,0],[x,geo.yMax,0],[x,geo.yMax,geo.zMax],[x,0,geo.zMax]],'rgba(153,82,225,.27)','rgba(203,150,255,.87)');text3('NOVEMBER 6, 2025 (LILLY / NOVO MFN AGREEMENTS)',x,0,geo.zMax,'left',13,'#652c91',8,-18,700)}
 
     state.hit=[];
 
@@ -411,19 +383,29 @@
 
       const y=(ymap.get(laneKey(p))+.5)*.35,pos=geo.project(dateX(p.date),y,p.usd/maxPrice*geo.zMax);
 
-      ctx.beginPath();ctx.arc(...pos,p.kind==='available'?5:3.5,0,2*Math.PI);ctx.fillStyle=colorFor(p);ctx.fill();
-
-      if(p.kind==='available'){ctx.strokeStyle='#e6f6ff';ctx.lineWidth=.8;ctx.stroke()}
+      const [px,py]=pos,r=6;
+      ctx.beginPath();
+      if(p.priceBasis==='temporary'){
+        ctx.moveTo(px,py-r-1);ctx.lineTo(px+r+1,py);ctx.lineTo(px,py+r+1);ctx.lineTo(px-r-1,py);ctx.closePath();
+      }else if(p.priceBasis==='conditional'){
+        ctx.moveTo(px,py-r-1);ctx.lineTo(px+r,py+r);ctx.lineTo(px-r,py+r);ctx.closePath();
+      }else if(p.priceBasis==='introductory'){
+        ctx.rect(px-r,py-r,r*2,r*2);
+      }else ctx.arc(px,py,r,0,2*Math.PI);
+      ctx.fillStyle=colorFor(p);ctx.fill();
+      ctx.strokeStyle='#334155';ctx.lineWidth=1.2;ctx.stroke();
 
       state.hit.push({p,x:pos[0],y:pos[1]});
 
-      if(els.view.value==='story'&&p.kind==='available'){
+      if(els.product.value!=='all'&&els.view.value==='story'&&p.kind==='available'&&p.product!=='Foundayo'){
 
-        ctx.fillStyle='#f5f7ff';ctx.textAlign='center';ctx.font='13px Inter,system-ui';ctx.fillText('$'+p.usd,pos[0],pos[1]-11);
+        labelQueue.push(()=>placeText('$'+p.usd,pos[0],pos[1]-11,{align:'center',color:'#17212f',point:p}));
 
       }
 
     }
+
+    labelQueue.forEach(drawLabel=>drawLabel());
 
   }
 
@@ -437,9 +419,9 @@
 
     setPlotExpanded(true);
 
-    els.detail.innerHTML=`<button type="button" class="close" aria-label="Close price details">×</button><h2>${esc(p.product)} · ${esc(p.dose)}</h2><dl>
+    els.detail.innerHTML=`<button type="button" class="close" aria-label="Close price details">×</button><h2>${esc(p.product)} · ${p.kind==='announced'&&p.dose==='All doses'?'Launch announcement':esc(p.dose)}</h2><dl>
 
-      <div><dt>Price</dt><dd class="amount">$${p.usd.toLocaleString()}</dd><dd>per ${period}</dd></div>
+      <div><dt>Price</dt><dd class="amount">${p.kind==='announced'?'Starting at ':''}$${p.usd.toLocaleString()}</dd><dd>per ${period}</dd></div>
 
       <div><dt>Date / status</dt><dd>${esc(p.date)} · ${esc(kinds[p.kind]||p.kind)}</dd></div>
 
@@ -481,7 +463,7 @@
 
     d.x=e.clientX;d.y=e.clientY;draw()});
 
-  canvas.addEventListener('pointerup',e=>{const d=state.drag;state.drag=null;canvas.style.cursor='grab';if(d&&!d.moved){const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const hit=state.hit.filter(h=>Math.hypot(h.x-x,h.y-y)<11).at(-1);if(hit)showPoint(hit.p)}});
+  canvas.addEventListener('pointerup',e=>{const d=state.drag;state.drag=null;canvas.style.cursor='grab';if(d&&!d.moved){const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const hit=state.hit.filter(h=>h.box?x>=h.box.left&&x<=h.box.right&&y>=h.box.top&&y<=h.box.bottom:Math.hypot(h.x-x,h.y-y)<11).at(-1);if(hit)showPoint(hit.p)}});
 
   canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
@@ -506,5 +488,3 @@
 </body>
 
 </html>
-
-
