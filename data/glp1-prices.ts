@@ -38,6 +38,8 @@ export type PricePoint = {
 
   note?: string;
 
+  dateLabel?: string;
+
   effectiveUntil?: string;
 
   seriesKey?: string;
@@ -85,6 +87,8 @@ export type ChartPoint = {
   announcement: boolean;
 
   note?: string;
+
+  dateLabel?: string;
 
   effectiveUntil?: string;
 
@@ -164,7 +168,7 @@ type AddPrice = Omit<PricePoint, "id" | "dose" | "unit" | "periodDays" | "status
 
 };
 
-function add({ date, product, form, doses, usd, days, channel, eligibility, priceBasis, event, status = "available", sourceUrl, note, seriesKey, displayMode, effectiveUntil }: AddPrice) {
+function add({ date, product, form, doses, usd, days, channel, eligibility, priceBasis, event, status = "available", sourceUrl, note, seriesKey, displayMode, effectiveUntil, dateLabel }: AddPrice) {
 
   for (const dose of doses) {
 
@@ -181,6 +185,7 @@ function add({ date, product, form, doses, usd, days, channel, eligibility, pric
       channel, eligibility, priceBasis, event, status, sourceUrl,
 
       ...(note ? { note } : {}),
+      ...(dateLabel ? { dateLabel } : {}),
 
       ...(effectiveUntil ? { effectiveUntil } : {}),
 
@@ -204,7 +209,8 @@ const regular = "Self-pay with valid on-label prescription";
 
 const journey = "Self-pay; first purchase, then refill within 45 days of prior delivery";
 
-const observedOn = "2026-10-05";
+export const PRICE_OBSERVED_ON = "2026-10-05";
+const observedOn = PRICE_OBSERVED_ON;
 
 const wegovyDoses = ["0.25 mg", "0.5 mg", "1 mg", "1.7 mg", "2.4 mg"];
 
@@ -230,6 +236,9 @@ add({ date: "2025-06-16", product: "Zepbound", form: "Vial", doses: ["12.5 mg", 
 
 for (const [dose, usd] of [["2.5 mg", 299], ["5 mg", 399]] as const) add({ date: "2025-12-01", product: "Zepbound", form: "Vial", doses: [dose], usd, days: 28, channel: Z, eligibility: regular, priceBasis: "regular", event: "Price change", sourceUrl: source.lillyDec2025 });
 
+// Regular higher-dose prices explicitly confirmed in the December release.
+for (const [dose, usd] of [["7.5 mg", 599], ["10 mg", 699], ["12.5 mg", 849], ["15 mg", 1049]] as const) add({ date: "2025-12-01", product: "Zepbound", form: "Vial", doses: [dose], usd, days: 28, channel: Z, eligibility: regular, priceBasis: "regular", event: "Regular price confirmed", sourceUrl: source.lillyDec2025 });
+
 add({ date: "2025-12-01", product: "Zepbound", form: "Vial", doses: zHigh, usd: 449, days: 28, channel: Z, eligibility: journey, priceBasis: "conditional", event: "Price change", sourceUrl: source.lillyDec2025 });
 
 for (const [dose, usd] of [["2.5 mg", 299], ["5 mg", 399]] as const) add({ date: "2026-02-23", product: "Zepbound", form: "KwikPen", doses: [dose], usd, days: 28, channel: Z, eligibility: regular, priceBasis: "regular", event: "Device launch", sourceUrl: source.lillyKwikPen });
@@ -248,7 +257,7 @@ for (const form of ["Vial", "KwikPen"]) {
 
 // Wegovy injection: one box of four weekly pens per 28-day supply.
 
-add({ date: "2024-09-01", product: "Wegovy", form: "Pen", doses: wegovyDoses, usd: 650, days: 28, channel: "NovoCare Pharmacy", eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Prior self-pay offer", sourceUrl: source.novoMar2025, note: "The $650 offer is confirmed; September 2024 is a moderate-confidence chart-start timing assumption." });
+add({ date: "2024-09-01", product: "Wegovy", form: "Pen", doses: wegovyDoses, usd: 650, days: 28, channel: "Wegovy retail savings offer", eligibility: "Eligible cash-paying patient under the predecessor savings offer", priceBasis: "regular", event: "Prior self-pay offer", sourceUrl: "https://www.prnewswire.com/news-releases/novo-nordisk-expands-wegovy-499-per-month-offering-to-additional-cash-paying-patients-via-the-wegovy-savings-offer-302408528.html", dateLabel: "Before March 2025 · start date unverified", note: "The March 24 manufacturer release confirms the predecessor $650 retail savings offer. September 1 is a schematic plotting anchor, not an observed start date. The March 5 $499 NovoCare Pharmacy launch used a different channel; retail savings changed March 24." });
 
 add({ date: "2025-03-05", product: "Wegovy", form: "Pen", doses: wegovyDoses, usd: 499, days: 28, channel: "NovoCare Pharmacy", eligibility: "Eligible self-pay; uninsured or plan excludes obesity drugs", priceBasis: "regular", event: "Channel launch", sourceUrl: source.novoMar2025 });
 
@@ -306,7 +315,7 @@ export const policyEvents = [{
 
   description: "Announced $350 for Ozempic/Wegovy, a $346 combined average for Zepbound/orforglipron, and $150 initial doses for future oral products.",
 
-  sourceUrl: "https://www.whitehouse.gov/fact-sheets/2025/11/06/fact-sheet-president-donald-j-trump-announces-major-developments-in-bringing-most-favored-nation-pricing-to-american-patients/",
+  sourceUrl: "https://www.whitehouse.gov/fact-sheets/2025/11/fact-sheet-president-donald-j-trump-announces-major-developments-in-bringing-most-favored-nation-pricing-to-american-patients/",
 
 }];
 
@@ -332,7 +341,7 @@ export const recordEvents: RecordEvent[] = [
   { date: "2025-02-21", title: "FDA resolves semaglutide injection shortage", type: "supply", channel: "Compounding transition", treatment: "Event marker", sourceId: "S13", publicData: "FDA announcement", caution: "Occurs close to manufacturer price changes.", note: "Potential supply and compounding channel." },
   { date: "2025-02-25", title: "Lilly cuts vial prices", type: "competition", channel: "DTC self-pay", treatment: "Price event", sourceId: "S2", publicData: "Yes", caution: "Observed change does not identify a single cause.", note: "Captured in the month-end February series." },
   { date: "2025-03-05", title: "NovoCare Pharmacy launches at $499", type: "distribution", channel: "DTC self-pay", treatment: "Price event", sourceId: "S5", publicData: "Yes", caution: "Channel differs from the predecessor savings offer.", note: "Retail savings offer expanded March 24." },
-  { date: "2025-05-12", title: "Most-Favored-Nation executive action", type: "policy", channel: "Policy pressure", treatment: "Event marker", sourceId: "S14", publicData: "Yes", caution: "Broad policy announcement; implementation differs by program.", note: "Later changes cannot be attributed solely to market forces." },
+  { date: "2025-05-12", title: "Most-Favored-Nation executive action", type: "policy", channel: "Policy pressure", treatment: "Event marker", sourceId: "S14", publicData: "Yes", caution: "Broad policy announcement; implementation differs by program.", note: "The order also directs HHS to facilitate manufacturer direct-to-consumer purchasing programs. Later changes cannot be attributed solely to market forces." },
   { date: "2025-06-16", title: "Lilly expands Zepbound vials across all approved doses", type: "product", channel: "DTC self-pay", treatment: "Higher-dose availability marker", sourceId: "S19", publicData: "Yes", caution: "No 2.5 mg or 5 mg price change.", note: "Adds 12.5 mg and 15 mg vials; the release keeps 2.5 mg at $349 and 5 mg at $499." },
   { date: "2025-11-06", title: "Federal agreements with manufacturers", type: "government", channel: "Public and direct pricing", treatment: "Event marker", sourceId: "S15", publicData: "Official and issuer materials", caution: "Overlaps with later manufacturer cash-price cuts.", note: "Separate the agreement date from subsequent price-effective dates." },
   { date: "2025-11-17", title: "Novo lowers standard self-pay to $349", type: "competition", channel: "DTC self-pay", treatment: "Price event", sourceId: "S6", publicData: "Yes", caution: "Release explicitly connects the offer to the recent U.S. agreement.", note: "$199 starter promotion is separate." },
@@ -758,7 +767,7 @@ function toChartPoint(point: PricePoint): ChartPoint {
 
     id: point.id,
 
-    label: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "2-digit", timeZone: "UTC" }).format(new Date(`${point.date}T00:00:00Z`)),
+    label: point.dateLabel ?? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "2-digit", timeZone: "UTC" }).format(new Date(`${point.date}T00:00:00Z`)),
 
     value: point.usd,
 
@@ -789,6 +798,7 @@ function toChartPoint(point: PricePoint): ChartPoint {
     displayMode: point.displayMode,
 
     announcement: point.status === "announced",
+    ...(point.dateLabel ? { dateLabel: point.dateLabel } : {}),
 
     ...(point.note ? { note: point.note } : {}),
 

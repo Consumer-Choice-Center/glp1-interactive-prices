@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Expand, RotateCcw, X } from "lucide-react";
-import UniverseScene from "./universe-scene";
-import PolicyStory from "./policy-story";
+import dynamic from "next/dynamic";
+const UniverseScene = dynamic(() => import("./universe-scene"), { ssr: false });
+import PolicyStory, { PolicyCaveat, PriceAnalysis } from "./policy-story";
 import PriceLandscape from "./price-landscape";
 import { productDoseColor } from "./dose-colors";
 import { getExplorePrice, type ChartPoint, type ChartSeries } from "../data/glp1-prices";
@@ -62,9 +63,16 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
     const dash = basis === "conditional" ? "8 6" : basis === "introductory" || basis === "temporary" ? "3 5" : undefined;
     const visiblePoints=series.points.filter(isPriceOrOfferPoint);
     const sortedPoints=visiblePoints.filter(point=>point.displayMode!=="marker").slice().sort((a,b)=>a.date.localeCompare(b.date));
-    const polylinePoints=sortedPoints.map(point=>`${xForDate(point.date)},${y(point.value)}`).join(" ");
+    const paths:string[]=[];
+    let last:typeof sortedPoints[number]|undefined;
+    for(const point of sortedPoints){
+      if(point.status === "observed" && last && point.value !== last.value){last=undefined;continue;}
+      if(!last)paths.push(`M ${xForDate(point.date)} ${y(point.value)}`);
+      else paths[paths.length-1]+=` H ${xForDate(point.date)} V ${y(point.value)}`;
+      last=point;
+    }
     return <g key={series.key}>
-      {series.showLine && <polyline points={polylinePoints} fill="none" stroke={color} strokeDasharray={dash} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+      {series.showLine && paths.map((path,index)=><path key={index} d={path} fill="none" stroke={color} strokeDasharray={dash} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />)}
       {visiblePoints.map((point,index)=>{
         const pointX=xForDate(point.date);
         const pointY=y(point.value);
@@ -72,7 +80,7 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
           ? pointY+18
           : point.announcement?pointY-22:pointY-10;
         const tooltip=[
-          point.date,
+          point.dateLabel ?? point.date,
           `$${point.value} / ${point.periodDays} days`,
           `Basis: ${point.basis}`,
           `Status: ${point.status}`,
@@ -89,7 +97,7 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
       })}
     </g>;
   })}
-  {visibleTickDates.map(date=>{const tickX=xForDate(date);return <g key={date}><line x1={tickX} y1={height-bottom+3} x2={tickX} y2={height-bottom+8} stroke="#7b8298"/><text className="price-chart-date" x={tickX} y={height-10} textAnchor="middle" style={axisLabelStyle}>{formatMonthYear(date)}</text></g>})}
+  {visibleTickDates.map(date=>{const tickX=xForDate(date);return <g key={date}><line x1={tickX} y1={height-bottom+3} x2={tickX} y2={height-bottom+8} stroke="#7b8298"/><text className="price-chart-date" x={tickX} y={height-10} textAnchor="middle" style={axisLabelStyle}>{allPoints.some(point => point.date === date && point.dateLabel) ? "Prior offer*" : formatMonthYear(date)}</text></g>})}
   {hoveredPoint&&(()=>{
     const tipWidth=292, tipHeight=108, pointX=xForDate(hoveredPoint.date), pointY=y(hoveredPoint.value);
     const tipX=Math.max(left,Math.min(pointX-tipWidth/2,width-right-tipWidth));
@@ -99,7 +107,7 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
     const channelText=`${hoveredPoint.status[0].toUpperCase()+hoveredPoint.status.slice(1)} · ${hoveredPoint.channel}`.slice(0,44);
     return <g className="chart-hover-card" pointerEvents="none">
       <rect x={tipX} y={tipY} width={tipWidth} height={tipHeight} rx="8"/>
-      <text x={tipX+13} y={tipY+22} className="chart-hover-date">{hoveredPoint.date}</text>
+      <text x={tipX+13} y={tipY+22} className="chart-hover-date">{hoveredPoint.dateLabel ? "Prior offer · date unverified" : hoveredPoint.date}</text>
       <text x={tipX+13} y={tipY+45} className="chart-hover-price">${hoveredPoint.value} / {hoveredPoint.periodDays} days</text>
       <text x={tipX+13} y={tipY+65} className="chart-hover-detail">{eventText}</text>
       <text x={tipX+13} y={tipY+83} className="chart-hover-detail">{channelText}</text>
@@ -107,6 +115,7 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
     </g>;
   })()}
  </svg>
+ {allPoints.some(point=>point.dateLabel)&&<p className="price-date-note">*Prior retail savings offer: start date unverified. The plotted baseline is schematic and uses a different channel from the March 2025 NovoCare Pharmacy launch.</p>}
  <div className="price-chart-legend" aria-label="Chart legend">
    <span><i className="legend-line legend-line-regular" style={{"--legend-color":color} as React.CSSProperties}/>Regular price</span>
    <span><i className="legend-line legend-line-conditional" style={{"--legend-color":color} as React.CSSProperties}/>Conditional offer</span>
@@ -116,43 +125,83 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
 }
 
 export default function Page(){
- const [selected,setSelected]=useState("wegovy"); const [dose,setDose]=useState<string|null>("2.4"); const [view,setView]=useState<"universe"|"compare"|"policy">("universe"); const [chartExpanded,setChartExpanded]=useState(false);
+ const [selected,setSelected]=useState("wegovy"); const [dose,setDose]=useState<string|null>("2.4"); const [chartExpanded,setChartExpanded]=useState(false);
+ const expandedDialogRef=useRef<HTMLDialogElement>(null);
+ const [universeFocused,setUniverseFocused]=useState(false);
+ useEffect(()=>{
+  const section=document.getElementById("universe");
+  if(!section)return;
+  const observer=new IntersectionObserver(([entry])=>setUniverseFocused(entry.isIntersecting),{rootMargin:"-25% 0px -25% 0px"});
+  observer.observe(section);
+  return()=>observer.disconnect();
+ },[]);
+ const detailPanelRef=useRef<HTMLElement>(null);
+ const [detailHeight,setDetailHeight]=useState<number>();
  const item=drugs.find(d=>d.id===selected)!;
  const displayedPrice=getExplorePrice(item.name,dose||item.doses[item.doses.length-1],item.model==="vial"?"Vial":item.model==="bottle"?"Tablet":"Pen");
  const selectedAccent=item.id==="wegovy"&&dose==="2.4"?"#b9c6cf":productDoseColor(item.id,dose||undefined,item.accent);
  const choose=(id:string)=>{const d=drugs.find(x=>x.id===id)!;setSelected(id);setDose(d.doses[d.doses.length-1]);};
- useEffect(()=>{if(!chartExpanded)return;const handleKeyDown=(event:KeyboardEvent)=>{if(event.key==="Escape")setChartExpanded(false)};window.addEventListener("keydown",handleKeyDown);return()=>window.removeEventListener("keydown",handleKeyDown)},[chartExpanded]);
- return <main className={`app-shell${view==="policy"?" policy-mode":""}`}>
-  <UniverseScene selected={selected} dose={dose} drugs={drugs} onSelect={choose} />
-  <div className="space-grain" aria-hidden="true" />
-  <header className="site-header">
-   <button className="wordmark" onClick={()=>{setView("universe");choose("wegovy")}} aria-label="Return to universe"><span className="ccc-brand"><img src="/ccc-logo.png" alt="Consumer Choice Center" /></span><span className="site-title">GLP-1 UNIVERSE</span></button>
-   <nav className="main-nav" aria-label="Main navigation"><button className={view==="policy"?"active":""} onClick={()=>setView("policy")}>Policy story</button><button className={view==="universe"?"active":""} onClick={()=>setView("universe")}>Explore</button><button className={view==="compare"?"active":""} onClick={()=>setView("compare")}>Compare the lineup</button></nav>
-   <div className="header-meta"><span>U.S. FDA APPROVALS · SEP 2026</span></div>
-  </header>
-  {view==="policy" ? <PolicyStory onExplore={id=>{choose(id);setView("universe");window.scrollTo({top:0,behavior:"instant"});}} /> : view==="universe" ? <>
-   <section className="intro" aria-label="Introduction"><div className="eyebrow">CURRENTLY TRACKING</div><h1>Rival brands Novo Nordisk<br/><em>& Eli Lilly.</em></h1><p>Explore cash-price offers for GLP-1 and dual GIP/GLP-1 products for weight management in the U.S. currently represented by these two manufacturers. Select a product to compare its format, doses, approval date, and price snapshot. This is informational content, not medical advice.</p><div className="intro-scroll">SELECT A PRODUCT <ArrowDownRight size={17}/></div></section>
-   <aside className="detail-panel" key={item.id} style={{"--accent":selectedAccent} as React.CSSProperties} aria-label={`${item.name} details`}>
+ useEffect(()=>{
+  if(!chartExpanded)return;
+  const dialog=expandedDialogRef.current;
+  if(!dialog)return;
+  dialog.showModal();
+  const previousOverflow=document.body.style.overflow;
+  document.body.style.overflow="hidden";
+  return()=>{document.body.style.overflow=previousOverflow;dialog.close();};
+ },[chartExpanded]);
+ const navigate=(section: "policy" | "universe" | "compare")=>{document.getElementById(section)?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"start"});};
+ useEffect(()=>{
+  const panel=detailPanelRef.current,legend=panel?.querySelector<HTMLElement>(".price-chart-legend");
+  if(!panel||!legend)return;
+  const measure=()=>setDetailHeight(Math.max(510, Math.ceil(legend.getBoundingClientRect().bottom-panel.getBoundingClientRect().top+panel.scrollTop+12)));
+  const observer=new ResizeObserver(measure);
+  observer.observe(panel);observer.observe(legend);
+  measure();
+  return()=>observer.disconnect();
+ },[selected,dose]);
+ const productUniverse = (
+<section id="universe" className="page-explore-section" aria-label="Explore medicines">
+   <section className="intro" aria-label="Introduction"><div className="eyebrow">PRODUCT UNIVERSE</div><h2>Rival brands Novo Nordisk<br/><em>& Eli Lilly.</em></h2><p>Select a product to explore its format, strengths, approval date, and manufacturer self-pay offers. Prices are for the stated dose and channel; products and doses are not clinically interchangeable.</p></section>
+   <div className="product-selection"><div className="intro-scroll">SELECT A PRODUCT <ArrowDownRight size={17}/></div><div className="orbit-dock" aria-label="Select a medicine">{drugs.filter(d=>d.id!=="wegovy-hd").map((d,i)=><button key={d.id} onClick={()=>choose(d.id)} className={selected===d.id||(d.id==="wegovy"&&selected==="wegovy-hd")?"current":""} style={{"--accent":d.id==="wegovy"&&(selected===d.id?dose:d.doses[d.doses.length-1])==="2.4"?"#b9c6cf":selected===d.id?selectedAccent:productDoseColor(d.id,d.doses[d.doses.length-1],d.accent)} as React.CSSProperties} aria-pressed={selected===d.id||(d.id==="wegovy"&&selected==="wegovy-hd")}><span className="dock-orb"/><span className="dock-copy"><strong>{d.name}</strong><small>{d.maker}</small></span><span className="dock-number">0{i+1}</span></button>)}</div><div className="scene-hint"><RotateCcw size={15}/> DRAG TO ROTATE · SELECT TO FOCUS</div></div>
+   <aside ref={detailPanelRef} className="detail-panel" key={item.id} style={{"--accent":selectedAccent,"--detail-height":detailHeight?`${detailHeight}px`:undefined} as React.CSSProperties} aria-label={`${item.name} details`}>
     <div className="panel-top"><span className="panel-kicker">{item.maker} <span className="tiny-star">·</span> {item.approved}</span><span className="panel-index">{String(drugs.indexOf(item)+1).padStart(2,"0")} / {String(drugs.length).padStart(2,"0")}</span></div>
     {(item.id==="wegovy"||item.id==="wegovy-hd")&&<div className="wegovy-variants" role="group" aria-label="Wegovy presentation">{["wegovy","wegovy-hd"].map(id=><button key={id} type="button" aria-pressed={selected===id} onClick={()=>choose(id)}>{id==="wegovy"?"Wegovy":"Wegovy HD"}</button>)}</div>}
     <h2>{item.name}</h2><div className="molecule">{item.molecule}</div><div className="thin-rule"/>
     <div className="fact-row"><span>FORMAT</span><strong>{item.form}</strong></div><div className="fact-row"><span>FDA APPROVAL</span><strong>{item.approved}</strong></div>
-    <div className="dose-head"><span>DOSE OPTIONS</span><span>CURRENT PRICE</span></div><div className="dose-grid">{item.doses.map(n=>{const dosePrice=getExplorePrice(item.name,n,item.model==="vial"?"Vial":item.model==="bottle"?"Tablet":"Pen");return <button key={n} className={dose===n?"selected":""} style={{"--dose-accent":productDoseColor(item.id,n,item.accent)} as React.CSSProperties} onClick={()=>setDose(n)} aria-pressed={dose===n} aria-label={`${n} mg, current snapshot ${dosePrice?.headline??"price unavailable"}`}><span className="dose-value">{n}<small>mg</small></span><span className="dose-price">{dosePrice?.headline??"—"}</span></button>})}</div>
-    {displayedPrice && <div className="price-module dose-price-chart"><div className="price-title"><span>{item.name.toUpperCase()} · {dose} MG · PRICE HISTORY</span><strong>{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></strong></div><button type="button" className="expand-chart-button" onClick={()=>setChartExpanded(true)} aria-label="Expand price chart"><Expand size={15}/> Expand chart</button><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent}/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></div>}
+    <div className="dose-head"><span>DOSE OPTIONS</span><span>{item.id === "zepbound" ? "VIAL SELF-PAY PRICE" : "CURRENT SELF-PAY PRICE"}</span></div><div className="dose-grid">{item.doses.map(n=>{const dosePrice=getExplorePrice(item.name,n,item.model==="vial"?"Vial":item.model==="bottle"?"Tablet":"Pen");return <button key={n} className={dose===n?"selected":""} style={{"--dose-accent":productDoseColor(item.id,n,item.accent)} as React.CSSProperties} onClick={()=>setDose(n)} aria-pressed={dose===n} aria-label={`${n} mg, current snapshot ${dosePrice?.headline??"price unavailable"}`}><span className="dose-value">{n}<small>mg</small></span><span className="dose-price">{dosePrice?.headline??"—"}</span></button>})}</div>
+    {displayedPrice && <div className="price-module dose-price-chart"><div className="price-title"><span>{item.name.toUpperCase()} · {dose} MG{item.id === "zepbound" ? " VIAL" : ""} · PRICE HISTORY</span><strong>{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></strong></div><button type="button" className="expand-chart-button" onClick={()=>setChartExpanded(true)} aria-label="Expand price chart"><Expand size={15}/> Expand chart</button><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent}/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></div>}
     <p className="item-note">{item.note}</p>
     <a className="source-link" href={item.source} target="_blank" rel="noreferrer">{item.sourceName} <ArrowUpRight size={15}/></a>
    </aside>
-   <div className="scene-hint"><RotateCcw size={15}/> DRAG TO ROTATE · SELECT TO FOCUS</div><div className="orbit-legend" aria-label="Orbit colors"><span><i className="novo-line"/> Novo Nordisk</span><span><i className="lilly-line"/> Eli Lilly</span></div>
-   <div className="orbit-dock" aria-label="Select a medicine">{drugs.filter(d=>d.id!=="wegovy-hd").map((d,i)=><button key={d.id} onClick={()=>choose(d.id)} className={selected===d.id||(d.id==="wegovy"&&selected==="wegovy-hd")?"current":""} style={{"--accent":d.id==="wegovy"&&(selected===d.id?dose:d.doses[d.doses.length-1])==="2.4"?"#b9c6cf":selected===d.id?selectedAccent:productDoseColor(d.id,d.doses[d.doses.length-1],d.accent)} as React.CSSProperties} aria-pressed={selected===d.id||(d.id==="wegovy"&&selected==="wegovy-hd")}><span className="dock-orb"/><span className="dock-copy"><strong>{d.name}</strong><small>{d.maker}</small></span><span className="dock-number">0{i+1}</span></button>)}</div>
-  </> : <section className="comparison"><div className="compare-heading"><div className="eyebrow"><span className="pulse"/> THE APPROVED MARKET</div><h1>Two makers.<br/><em>Five presentations.</em></h1><p>Count distinct product and form presentations here. Dose options are labeled strengths or selectable pen settings, not a measure of potency or clinical equivalence. Pricing and availability can vary by pharmacy, channel, and affordability program.</p></div><PriceLandscape/><div className="compare-columns"><div className="maker-column novo">
-    <div className="maker-heading"><span>NOVO NORDISK</span><strong>3 <small>presentations</small></strong><strong>10 <small>dose options</small></strong></div>
-    {drugs.filter(d=>d.maker==="Novo Nordisk").map(d=><button key={d.id} onClick={()=>{choose(d.id);setView("universe")}}><span><b>{d.name}</b><small>{d.form} · {d.approved}</small></span><span>{d.doses.length} doses <ArrowUpRight size={17}/></span></button>)}</div>
+   <div className="orbit-legend" aria-label="Orbit colors"><span><i className="novo-line"/> Novo Nordisk</span><span><i className="lilly-line"/> Eli Lilly</span></div>
+
+  </section>
+ );
+ const priceEvidence = (
+  <section className="comparison price-evidence" aria-label="Tracked manufacturer product lineup">
+<div className="compare-heading lineup-intro"><div className="eyebrow">THE TRACKED MARKET</div><h2>Two makers.<br/><em>Five tracked entries.</em></h2><p>Wegovy injection, Wegovy HD, Wegovy pill, Zepbound, and Foundayo. These editorial groupings are not a count of every device or formulation: Zepbound’s pen, vial, and KwikPen share one entry.</p></div><div className="compare-columns"><div className="maker-column novo">
+    <div className="maker-heading"><span>NOVO NORDISK</span><strong>3 <small>tracked entries</small></strong><strong>10 <small>dose options</small></strong></div>
+    {drugs.filter(d=>d.maker==="Novo Nordisk").map(d=><button key={d.id} onClick={()=>{choose(d.id);navigate("universe")}}><span><b>{d.name}</b><small>{d.form} · {d.approved}</small></span><span>{d.doses.length} {d.doses.length === 1 ? "dose" : "doses"} <ArrowUpRight size={17}/></span></button>)}</div>
     <div className="maker-column lilly">
-    <div className="maker-heading"><span>ELI LILLY</span><strong>2 <small>presentations</small></strong><strong>12 <small>dose options</small></strong></div>
-    {drugs.filter(d=>d.maker==="Eli Lilly").map(d=><button key={d.id} onClick={()=>{choose(d.id);setView("universe")}}><span><b>{d.name}</b><small>{d.form} · {d.approved}</small></span><span>{d.doses.length} doses <ArrowUpRight size={17}/></span></button>)}</div>
+    <div className="maker-heading"><span>ELI LILLY</span><strong>2 <small>tracked entries</small></strong><strong>12 <small>dose options</small></strong></div>
+    {drugs.filter(d=>d.maker==="Eli Lilly").map(d=><button key={d.id} onClick={()=>{choose(d.id);navigate("universe")}}><span><b>{d.name}</b><small>{d.form} · {d.approved}</small></span><span>{d.doses.length} {d.doses.length === 1 ? "dose" : "doses"} <ArrowUpRight size={17}/></span></button>)}</div>
   </div>
-  <p className="method-note">Scope: branded FDA-approved weight-management GLP-1 receptor agonists and tirzepatide (dual GIP/GLP-1), through September 2026. Diabetes-only brands and compounded products are excluded. Wegovy injection and HD are shown separately to make the new 7.2 mg presentation visible; they share semaglutide and the Wegovy brand. Pricing, where shown, is a manufacturer self-pay offer for a specified dose/channel, not list or net price. The 3D objects are stylized illustrations, not product photographs.</p></section>}
+  <p className="method-note">Scope: branded FDA-approved weight-management GLP-1 receptor agonists and tirzepatide (dual GIP/GLP-1), through September 2026. Diabetes-only brands and compounded products are excluded. Wegovy injection and HD are shown separately to make the new 7.2 mg presentation visible; they share semaglutide and the Wegovy brand. Pricing, where shown, is a manufacturer self-pay offer for a specified dose/channel, not list or net price. The 3D objects are stylized illustrations, not product photographs.</p>
+  </section>
+ );
+ const approvedMarket = (
+<><section id="compare" className="comparison"><div className="compare-heading"><div className="eyebrow">DETAILED PRICE LANDSCAPE</div><h2>Explore every recorded offer.</h2><p>Filter by product, dose, and price basis. Injections use 28-day supplies; tablets use 30-day supplies. These are not clinical equivalents. Announcements and observed snapshots are distinguished from dated price changes. Wegovy’s predecessor baseline has an unverified start date.</p></div><PriceLandscape/></section><section className="comparison price-evidence" aria-label="Price-cut analysis"><PriceAnalysis/></section></>
+ );
+ return <div className="app-shell single-page">
+  <UniverseScene selected={selected} dose={dose} drugs={drugs} onSelect={choose} focused={universeFocused} />
+  <div className="space-grain" aria-hidden="true" />
+  <div className="approval-corner">U.S. FDA APPROVALS · SEP 2026</div>
+  <section id="policy" className="page-policy-section" aria-label="Policy story">
+    <PolicyStory productUniverse={productUniverse} approvedMarket={approvedMarket} priceEvidence={priceEvidence} />
+  </section>
+  <div className="page-caveat-section"><PolicyCaveat /></div>
   <footer className="site-footer"><span>RESEARCH & DESIGN · ARACELI VARGAS</span><span>PRODUCT INFORMATION ONLY · NOT MEDICAL ADVICE</span></footer>
-  {chartExpanded&&displayedPrice&&<div className="chart-modal-backdrop" onClick={()=>setChartExpanded(false)}><section className="chart-modal" role="dialog" aria-modal="true" aria-labelledby="expanded-chart-title" onClick={event=>event.stopPropagation()}><div className="chart-modal-heading"><div><span className="panel-kicker">PRICE HISTORY · {item.name.toUpperCase()} · {dose} MG</span><h2 id="expanded-chart-title">{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></h2></div><button type="button" onClick={()=>setChartExpanded(false)} aria-label="Close expanded chart"><X size={20}/></button></div><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent} expanded/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></section></div>}
- </main>
+  {chartExpanded&&displayedPrice&&<dialog ref={expandedDialogRef} className="chart-modal-backdrop" onCancel={()=>setChartExpanded(false)} onKeyDown={event=>{if(event.key==="Escape")setChartExpanded(false)}} onClose={()=>setChartExpanded(false)} onClick={event=>{if(event.target===event.currentTarget)setChartExpanded(false)}}><section className="chart-modal" role="dialog" aria-modal="true" aria-labelledby="expanded-chart-title" onClick={event=>event.stopPropagation()}><div className="chart-modal-heading"><div><span className="panel-kicker">PRICE HISTORY · {item.name.toUpperCase()} · {dose} MG</span><h2 id="expanded-chart-title">{displayedPrice.headline}<small> / {displayedPrice.periodDays} days</small></h2></div><button type="button" onClick={()=>setChartExpanded(false)} aria-label="Close expanded chart"><X size={20}/></button></div><ExplorePriceLineChart chartSeries={displayedPrice.chartSeries} color={selectedAccent} expanded/><p>{item.id==="foundayo"&&<>The chart shows available and observed prices and offers; non-price announcements are omitted. Hover over a point for its date and price basis. </>}{displayedPrice.detail}</p><div className="price-sources"><a href={displayedPrice.source} target="_blank" rel="noreferrer">Price source ↗</a>{displayedPrice.offerSources.map(offer=><a key={offer.label} href={offer.source} target="_blank" rel="noreferrer">{offer.label}</a>)}</div></section></dialog>}
+ </div>
 }

@@ -981,3 +981,128 @@
 @media (max-width: 700px) {
   .policy-story-page .sequence-event-list button { grid-template-columns: 1fr; gap: .4rem; }
 }
+.policy-story-page .hero .byline { display: block; line-height: 1.5; }
+
+/* Let the shared universe remain visible between the reading panels. */
+.single-page .policy-story-page .price-analysis { background: transparent; }
+.single-page .policy-story-page .caveat { background: rgba(5, 7, 11, .55); }
+
+/* Align the active milestone with the timeline heading. */
+.policy-story-page .timeline-grid { margin-top: 0; align-items: start; }
+.policy-story-page .timeline-heading { min-width: 0; }
+.policy-story-page .timeline-heading > h2 { max-width: 14ch; margin: 1rem 0 1.25rem; font-size: clamp(2.9rem, 5.2vw, 6.2rem); line-height: .95; letter-spacing: -.055em; font-weight: 600; }
+.policy-story-page .timeline-heading .timeline-rail { margin-top: 2rem; }
+
+.policy-story-page .timeline-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(1.5rem, 3vw, 3rem); }
+.policy-story-page .timeline-milestone { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 1rem; align-items: center; min-width: 0; }
+.policy-story-page .timeline-milestone .timeline-rail { flex-direction: column; overflow: visible; padding-bottom: 0; }
+.policy-story-page .timeline-milestone .timeline-rail button { min-width: 0; flex-direction: row; align-items: center; gap: 12px; }
+.policy-story-page .timeline-milestone .timeline-rail::before { left: 8px; right: auto; top: 12px; bottom: 12px; width: 1px; height: auto; }
+@media(max-width:900px) { .policy-story-page .timeline-grid { grid-template-columns: 1fr; } }
+
+
+.policy-story-page .price-analysis-header h2 { font-size: clamp(2.9rem, 5.2vw, 6.2rem); }
+
+
+/* Use equal spacing around each summary figure. */
+.policy-story-page .stat-card { justify-content: flex-start; gap: 1.5rem; }
+
+.policy-story-page .numbers { padding-top: clamp(14rem, 25vh, 22rem); }
+
+.policy-story-page .mechanism-list { border-top: 0; display: grid; gap: .85rem; }
+.policy-story-page .mechanism-list li { padding: 1.25rem; border: 1px solid rgba(155,196,228,.2); border-radius: 12px; background: linear-gradient(115deg, rgba(22,40,70,.85), rgba(15,28,50,.45) 55%, transparent); }
+
+.policy-story-page .phase-grid { gap: 1rem; background: transparent; border: 0; border-radius: 0; overflow: visible; }
+.policy-story-page .phase-grid article { --phase-accent: #ff7657; background: linear-gradient(115deg, rgba(22,40,70,.85), rgba(15,28,50,.45) 55%, transparent); border: 1px solid rgba(155,196,228,.2); border-left: 3px solid var(--phase-accent); border-radius: 12px; }
+.policy-story-page .phase-grid article:nth-child(2) { --phase-accent: #c38bff; }
+.policy-story-page .phase-grid span { color: var(--phase-accent); }
+
+/* Join the Scope note directly to the Mechanism backdrop. */
+.single-page .policy-story-page .comparison { padding-bottom: 0; }
+.single-page .policy-story-page .comparison .method-note { margin-bottom: 0; }
+.single-page .policy-story-page .comparison + .mechanism { margin-top: 0; background: linear-gradient(180deg, rgba(5,7,12,.88), rgba(5,7,12,.65) 70%, transparent); }
+
+.single-page .comparison > .price-analysis { padding-inline: 0; }
+
+.policy-story-page .mechanism:has(+ .oped-charts) { padding-bottom: clamp(2rem, 4vw, 3rem); }
+.policy-story-page .oped-charts { padding-top: clamp(1.5rem, 3vw, 2.5rem); }
+
+.single-page .page-caveat-section .caveat { padding-top: clamp(1.5rem, 3vw, 2.5rem); }
+.single-page .policy-story-page .oped-charts { padding-bottom: clamp(2rem, 4vw, 3rem); }
+
+@media(min-width:901px) {
+  .policy-story-page .dashboard .dashboard-wrap { align-items: start; }
+  .policy-story-page .dashboard .chart-shell { margin-top: 1.9rem; }
+}
+
+.policy-story-page .numbers { padding-bottom: clamp(2.5rem, 5vw, 4rem); }
+.policy-story-page .oped { padding-top: clamp(2.5rem, 5vw, 4rem); }
+
+@media(min-width:901px) { .policy-story-page .hero-bottom { right: 1.5rem; bottom: -1.5rem; width: min(24rem, 28.5vw); } }
+
+
+/* Warm orange treatment for the concluding steps. */
+.policy-story-page .phase-grid article { --phase-accent: #ffbd59; border: 1px solid rgba(255,189,89,.32); background: linear-gradient(140deg, rgba(255,145,91,.23), rgba(255,189,89,.11) 58%, rgba(25,18,20,.94)); }
+.policy-story-page .phase-grid article:nth-child(2) { --phase-accent: #ffbd59; }
+
+.policy-story-page .channel-details summary { padding: 1rem 1.25rem; border: 1px solid rgba(155,196,228,.3); border-radius: 8px; background: rgba(22,40,70,.65); cursor: pointer; font-weight: 700; }
+.policy-story-page .channel-details[open] summary { margin-bottom: 1.5rem; }
+.policy-story-page .signal-summary { min-height: auto; }
+.policy-story-page .stat-card { min-width: 0; }
+@media(min-width:901px) { .policy-story-page .stat-card { container-type: inline-size; } .policy-story-page .stat-card strong { font-size: clamp(2rem, 19cqw, 6rem); } }
+@media(max-width:900px) { .policy-story-page .stat-card { width: 100%; } .policy-story-page .stat-card strong { font-size: clamp(3rem, 12vw, 6rem); } }
+
+@media(max-width:900px) {
+ .policy-story-page .hero { flex-direction: column; justify-content: center; align-items: stretch; gap: 0; }
+ .policy-story-page .hero-copy { align-self: stretch; flex-shrink: 0; }
+ .policy-story-page .hero-bottom { flex-shrink: 0; }
+ .policy-story-page .numbers { padding-top: 5rem; }
+}
+
+.policy-story-page .hero h1 span { color: rgba(245, 244, 239, .5); }
+@media(max-width:900px) { .policy-story-page .hero::before { content: ""; position: absolute; inset: 0; background: rgba(3,9,21,.25); pointer-events: none; } .policy-story-page .hero-copy { position: relative; z-index: 1; } .policy-story-page .hero-bottom { position: static; z-index: 1; } }
+
+.policy-story-page .caveat-panel > .eyebrow { font-size: .85rem; }
+.policy-story-page .caveat-panel > h2 { font-size: clamp(3.4rem, 6.2vw, 7.2rem); }
+
+.policy-story-page .phase-grid article > span { color: #79d6e7; }
+
+.policy-story-page .price-channels-description { max-width: 48rem; margin: -1rem 0 2rem; color: var(--muted); font-size: 1rem; line-height: 1.65; }
+
+/* Evidence panels share an observation cutoff and separate offers from policy. */
+.policy-story-page .analysis-shell:not(.analysis-shell-indexed):not(.analysis-shell-sequence) { background: #f7f1e8; color: #202c3d; }
+.policy-story-page .price-history-panels, .policy-story-page .channel-panels { color: #202c3d; background: #f7f1e8; border-radius: 16px; padding: clamp(1rem, 3vw, 2rem); }
+.policy-story-page .history-policy-key { display: flex; flex-wrap: wrap; gap: .75rem 2rem; font-size: .8rem; font-weight: 700; color: #652c91; margin-bottom: 1.5rem; }
+.policy-story-page .history-policy-key span::before { content: ''; display: inline-block; height: 1em; border-left: 2px dashed #8755a9; margin-right: .5rem; }
+.policy-story-page .history-panel h4, .policy-story-page .channel-panel h4 { margin: 1rem 0 .2rem; font-size: 1rem; color: #202c3d; }
+.policy-story-page .history-scroll { overflow-x: auto; }
+.policy-story-page .history-scroll svg { display: block; width: 100%; min-width: 680px; }
+.policy-story-page .history-scroll text { fill: #475569; font-size: 13px; font-family: inherit; }
+.policy-story-page .history-scroll .history-price { fill: #202c3d; font-size: 16px; font-weight: 700; }
+.policy-story-page .history-scroll .history-cut { fill: #974311; font-size: 14px; font-weight: 700; }
+.policy-story-page .history-grid { stroke: #d8d0c8; }
+.policy-story-page .history-policy { stroke: #8755a9; stroke-width: 2; stroke-dasharray: 4 4; }
+.policy-story-page .history-point { cursor: pointer; }
+.policy-story-page .history-point:focus-visible { outline: 2px solid #974311; outline-offset: 5px; }
+.policy-story-page .history-method, .policy-story-page .channel-panels > p { color: #4d5968; font-size: .9rem; line-height: 1.6; }
+.policy-story-page .history-readout { display: flex; flex-direction: column; gap: .5rem; background: #e9e0d7; border-radius: 8px; padding: 1rem; margin-top: 1rem; font-size: .9rem; line-height: 1.5; }
+.policy-story-page .history-readout a, .policy-story-page .sequence-readout a { color: #974311; font-weight: 700; }
+.policy-story-page .channel-panels h3 { margin: 0 0 1rem; font-size: 1.5rem; }
+.policy-story-page .oped-chart-dialog .channel-panels { max-width: 1100px; margin: 0 auto; }
+.policy-story-page .oped-chart-list .expand-chart-button { margin-top: 1rem; }
+.policy-story-page .analysis-view-tabs { flex-wrap: wrap; }
+.policy-story-page .sequence-event-list button { grid-template-columns: minmax(100px, .7fr) minmax(100px, .8fr) minmax(0, 1.6fr) minmax(140px, 1fr); }
+.policy-story-page .sequence-event-reduction { white-space: normal; }
+.policy-story-page .numbers { min-height: auto; padding-top: clamp(8rem, 14vw, 13rem); }
+.policy-story-page .timeline-section { padding-top: clamp(9rem, 15vw, 14rem); }
+.policy-story-page .lineup-intro { margin-top: 2rem; }
+@media(max-width:900px) { .policy-story-page .sequence-event-list button { grid-template-columns: 1fr; } }
+
+.policy-story-page .history-product-tabs, .policy-story-page .history-dose-picker { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+.policy-story-page .history-product-tabs button, .policy-story-page .history-dose-picker button { padding: .65rem 1.1rem; border: 1px solid #cbbfb3; border-radius: 999px; background: transparent; color: #202c3d; font: inherit; font-weight: 700; cursor: pointer; }
+.policy-story-page .history-product-tabs button[aria-selected="true"] { background: #202c3d; color: #f7f1e8; border-color: #202c3d; }
+.policy-story-page .history-dose-picker button[aria-pressed="true"] { background: #dcebed; border-color: #487b83; }
+.policy-story-page .history-product-tabs button:focus-visible, .policy-story-page .history-dose-picker button:focus-visible { outline: 2px solid #974311; outline-offset: 3px; }
+.policy-story-page .history-scroll .history-axis-title { fill: #974311; font-weight: 700; }
+
+.policy-story-page .history-scroll .history-policy-label-may { fill: #b58b00; font-weight: 700; }

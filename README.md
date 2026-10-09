@@ -1,6 +1,6 @@
 # GLP-1 Universe
 
-A visual explainer app for FDA-approved GLP-1 and dual GIP/GLP-1 medicines in the U.S. market. The project presents product details, dose options, pricing snapshots, and a rotating discovery view for the current GLP-1 landscape.
+A Consumer Choice Center research project combining an op-ed, sourced manufacturer cash-price histories, policy timelines, and an interactive product universe. Regular prices are distinguished from conditional, introductory, and temporary offers.
 
 ## Tech stack
 
@@ -25,6 +25,25 @@ Then open the local URL shown in the terminal.
 ```bash
 npm run build
 ```
+
+## Validation
+
+```bash
+npx tsc --noEmit --incremental false
+npm run lint
+npm run build
+```
+
+The build produces Cloudflare Worker assets and configuration in `dist/`. Deploy the generated `dist/server/wrangler.json` with your hosting account; local development state and environment files are excluded from Git.
+
+## Data and editorial scope
+
+- Price observations and sources live in `data/glp1-prices.ts`; the current observation date is October 5, 2026.
+- A current snapshot is not automatically a dated price cut. The analysis compares existing products at the same dose, form, and regular self-pay basis, excluding launches and promotional offers.
+- The headline comparison covers Wegovy injection and Zepbound 2.5/5 mg vials only. Higher-dose regular vial prices have lower current observations with unverified change dates.
+- The $650 Wegovy predecessor is a retail savings offer with an unverified start date; its plotting anchor is schematic.
+- Dates establish the sequence of market and policy actions, not their causal contribution.
+- Dated stepped price panels lead the evidence section. The Product Universe and 3D landscape use the shared manufacturer-offer dataset. Chart 1 (Zepbound) and chart 2 (Wegovy) from `charts/` are displayed in the Price channels section with their edited descriptions and full-size viewing. Public copies are served from `public/charts/`. The restored “The signal” section follows these charts, with product/dose selectors, historical prices, offer cards, and a separate policy announcement.
 
 ## Notes
 
