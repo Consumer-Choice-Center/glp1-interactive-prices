@@ -1118,7 +1118,7 @@
   .policy-story-page .hero-description-actions { align-self: flex-end; width: min(40rem, 45vw); }
 }
 
-.policy-story-page .hero-research-intro { position: absolute; left: clamp(1.5rem, 7vw, 8rem); bottom: calc(.5rem - 100px); width: min(40rem, 38vw); isolation: isolate; }
+.policy-story-page .hero-research-intro { position: absolute; left: clamp(1.5rem, 7vw, 8rem); bottom: calc(.5rem - 110px); width: min(44rem, 42vw); isolation: isolate; }
 .policy-story-page .hero-research-intro::before { content: ""; position: absolute; inset: -2rem; z-index: -1; background: radial-gradient(ellipse, rgba(0, 0, 0, .9) 20%, rgba(0, 0, 0, .6) 60%, transparent 85%); filter: blur(18px); pointer-events: none; }
 .policy-story-page .hero-research-intro > p { margin: 0; color: var(--muted); font-size: 1rem; font-weight: 400; line-height: 1.65; }
 @media(max-width:900px) { .policy-story-page .hero-research-intro { position: relative; left: auto; bottom: auto; width: 100%; margin-top: 3rem; } }
