@@ -279,19 +279,11 @@ export default function PolicyStory({ productUniverse, approvedMarket, priceEvid
 
           </div>
 
-          <div className="hero-bottom" id="story">
-
-            <p>
-
-              Manufacturer cash-price cuts began before the May 2025 MFN executive order. Explore the price record and the policy timeline.
-
-            </p>
-
-            <a href="#universe">Product Universe →</a>
-
-            <button className="read-oped-button" type="button" onClick={scrollToOped}>Read the op-ed ↓</button>
-
+          <div className="hero-research-intro" id="story">
+            <p>Political pressure for mandatory drug price cuts and reference pricing keeps mounting in the US - We observe market and competitive dynamics in the field of anti-obesity medicines and created this dashboard based on our research. It shows that market forces, and not government policies were responsible for bringing AOMs prices down. Direct2Consumer approaches have been a driving factor as well. Enjoy scrolling and clicking through this interactive journey!</p>
+            <div className="hero-research-actions"><a href="#universe">Product Universe →</a><button className="read-oped-button" type="button" onClick={scrollToOped}>Read the op-ed ↓</button></div>
           </div>
+
 
         </section>
 
