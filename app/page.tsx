@@ -7,7 +7,7 @@ const UniverseScene = dynamic(() => import("./universe-scene"), { ssr: false });
 import PolicyStory, { PolicyCaveat, PriceAnalysis } from "./policy-story";
 import PriceLandscape from "./price-landscape";
 import { productDoseColor } from "./dose-colors";
-import { getExplorePrice, type ChartPoint, type ChartSeries } from "../data/glp1-prices";
+import { getExplorePrice, PRICE_OBSERVED_ON, type ChartPoint, type ChartSeries } from "../data/glp1-prices";
 import "./universe.css";
 
 type Drug = { id:string; name:string; molecule:string; maker:"Novo Nordisk"|"Eli Lilly"; form:string; approved:string; doses:string[]; note:string; accent:string; source:string; sourceName:string; model:"pen"|"vial"|"bottle"; };
@@ -17,7 +17,7 @@ const drugs:Drug[] = [
   {id:"zepbound",name:"Zepbound",molecule:"tirzepatide",maker:"Eli Lilly",form:"Weekly injection · pen, vial or KwikPen",approved:"Nov 2023",doses:["2.5","5","7.5","10","12.5","15"],note:"Six strengths available in a vial.",accent:"#ffbe78",model:"vial",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/217806Orig1s020lbl.pdf",sourceName:"FDA prescribing information"},
   {id:"oral-wegovy",name:"Wegovy pill",molecule:"semaglutide",maker:"Novo Nordisk",form:"Daily tablet",approved:"Dec 2025",doses:["1.5","4","9","25"],note:"The first oral GLP-1 approved in the U.S. for weight management. Approved Dec 22, 2025, before Foundayo.",accent:"#ee99c4",model:"bottle",source:"https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/218316Orig1s000lbl.pdf",sourceName:"FDA tablet label"},
   {id:"wegovy-hd",name:"Wegovy HD",molecule:"semaglutide",maker:"Novo Nordisk",form:"Weekly single-dose injection",approved:"Mar 2026",doses:["7.2"],note:"A higher semaglutide dose for eligible adults who have tolerated 2.4 mg for at least four weeks and need further weight reduction.",accent:"#c6a3f4",model:"pen",source:"https://www.fda.gov/news-events/press-announcements/fda-approves-fourth-product-under-national-priority-voucher-program-higher-dose-semaglutide",sourceName:"FDA approval announcement"},
-  {id:"foundayo",name:"Foundayo",molecule:"orforglipron",maker:"Eli Lilly",form:"Daily tablet",approved:"Apr 2026",doses:["0.8","2.5","5.5","9","14.5","17.2"],note:"Lilly’s oral GLP-1 was approved Apr 1, 2026 and became available Apr 9, about three months after oral Wegovy’s U.S. arrival.",accent:"#f5a88f",model:"bottle",source:"https://www.fda.gov/news-events/press-announcements/fda-approves-first-new-molecular-entity-under-national-priority-voucher-program",sourceName:"FDA approval announcement"}
+  {id:"foundayo",name:"Foundayo",molecule:"orforglipron",maker:"Eli Lilly",form:"Daily tablet",approved:"Apr 2026",doses:["0.8","2.5","5.5","9","14.5","17.2"],note:"Lilly’s oral GLP-1 was approved Apr 1, 2026 and had LillyDirect shipping scheduled to begin Apr 6, followed by broader availability Apr 9, about three months after oral Wegovy’s U.S. arrival.",accent:"#f5a88f",model:"bottle",source:"https://www.fda.gov/news-events/press-announcements/fda-approves-first-new-molecular-entity-under-national-priority-voucher-program",sourceName:"FDA approval announcement"}
 ];
 
 function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chartSeries: ChartSeries[]; color: string; expanded?: boolean }) {
@@ -30,10 +30,10 @@ function ExplorePriceLineChart({ chartSeries, color, expanded = false }: { chart
  const chartLeft=left+eventAxisInset, chartRight=width-right-eventAxisInset;
  const chartWidth=chartRight-chartLeft;
  const dates=[...new Set(allPoints.map(point=>point.date))].sort((a,b)=>a.localeCompare(b));
- const dateIndex=new Map(dates.map((date,index)=>[date,index]));
+ const startDate=Date.parse(dates[0]);
+ const endDate=Date.parse(dates[dates.length-1]);
  const xForDate=(date:string)=>{
-   const index=dateIndex.get(date) ?? 0;
-   const ratio=dates.length===1?0.5:index/(dates.length-1);
+   const ratio=startDate===endDate?0.5:(Date.parse(date)-startDate)/(endDate-startDate);
    return chartLeft+ratio*chartWidth;
  };
  const values=allPoints.map(point=>point.value);
@@ -187,7 +187,7 @@ export default function Page(){
     <div className="maker-heading"><span>ELI LILLY</span><strong>2 <small>tracked entries</small></strong><strong>12 <small>dose options</small></strong></div>
     {drugs.filter(d=>d.maker==="Eli Lilly").map(d=><button key={d.id} onClick={()=>{choose(d.id);navigate("universe")}}><span><b>{d.name}</b><small>{d.form} · {d.approved}</small></span><span>{d.doses.length} {d.doses.length === 1 ? "dose" : "doses"} <ArrowUpRight size={17}/></span></button>)}</div>
   </div>
-  <p className="method-note">Scope: branded FDA-approved weight-management GLP-1 receptor agonists and tirzepatide (dual GIP/GLP-1), through September 2026. Diabetes-only brands and compounded products are excluded. Wegovy injection and HD are shown separately to make the new 7.2 mg presentation visible; they share semaglutide and the Wegovy brand. Pricing, where shown, is a manufacturer self-pay offer for a specified dose/channel, not list or net price. The 3D objects are stylized illustrations, not product photographs.</p>
+  <p className="method-note">Scope: branded FDA-approved weight-management GLP-1 receptor agonists and tirzepatide (dual GIP/GLP-1), through {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${PRICE_OBSERVED_ON}T00:00:00Z`))}. Diabetes-only brands and compounded products are excluded. Wegovy injection and HD are shown separately to make the new 7.2 mg presentation visible; they share semaglutide and the Wegovy brand. Pricing, where shown, is a manufacturer self-pay offer for a specified dose/channel, not list or net price. The 3D objects are stylized illustrations, not product photographs.</p>
   </section>
  );
  const approvedMarket = (

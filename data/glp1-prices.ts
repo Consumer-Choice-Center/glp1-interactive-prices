@@ -275,7 +275,6 @@ for (const [doses, usd, priceBasis] of [[ ["1.5 mg"], 149, "regular" ], [["4 mg"
 
 add({ date: "2026-04-07", product: "Wegovy HD", form: "Pen", doses: ["7.2 mg"], usd: 399, days: 28, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Dose launch", sourceUrl: source.novoHD });
 
-add({ date: observedOn, product: "Wegovy pill", form: "Tablet", doses: ["4 mg"], usd: 199, days: 30, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Current observation", status: "observed", sourceUrl: source.novoCurrent, note: "Earlier $149 offer expired August 31; verify first $199 sale date before charting a September 1 change." });
 
 add({ date: observedOn, product: "Wegovy", form: "Pen", doses: wegovyDoses, usd: 349, days: 28, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Current observation", status: "observed", sourceUrl: source.novoCurrent });
 
@@ -283,7 +282,7 @@ add({ date: observedOn, product: "Wegovy", form: "Pen", doses: ["0.25 mg", "0.5 
 
 add({ date: observedOn, product: "Wegovy HD", form: "Pen", doses: ["7.2 mg"], usd: 399, days: 28, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Current observation", status: "observed", sourceUrl: source.novoCurrent });
 
-for (const [dose, usd] of [["1.5 mg", 149], ["4 mg", 199], ["9 mg", 299], ["25 mg", 299]] as const) add({ date: observedOn, product: "Wegovy pill", form: "Tablet", doses: [dose], usd, days: 30, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Current observation", status: "observed", sourceUrl: source.novoCurrent });
+for (const [dose, usd] of [["1.5 mg", 149], ["4 mg", 199], ["9 mg", 299], ["25 mg", 299]] as const) add({ date: observedOn, product: "Wegovy pill", form: "Tablet", doses: [dose], usd, days: 30, channel: N, eligibility: "Eligible self-pay patient", priceBasis: "regular", event: "Current observation", status: "observed", sourceUrl: source.novoCurrent, ...(dose === "4 mg" ? { note: "Earlier $149 offer expired August 31; verify first $199 sale date before charting a September 1 change." } : {}) });
 
 
 

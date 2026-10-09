@@ -137,7 +137,7 @@
     <span><i class="point-symbol point-conditional" aria-hidden="true"></i>Conditional offer · triangle</span>
     <span><i class="point-symbol" aria-hidden="true"></i>Introductory offer · square</span>
   </div>
-  <p class="note">Flat translucent ribbons show documented price levels between dated events. Each lane is a distinct dose and offer. Wegovy pill: 30 tablets; injections: 28 days. The policy plane marks timing, not causation. Eligibility can change the price. Data through 28 September 2026.</p>
+  <p class="note">Flat translucent ribbons show documented price levels between dated events. Each lane is a distinct dose and offer. Wegovy pill: 30 tablets; injections: 28 days. The policy plane marks timing, not causation. Eligibility can change the price. Data observed on <span id="observed-date"></span>.</p>
 
 </main>
 
@@ -148,6 +148,8 @@
 (() => {
 
   const data=JSON.parse(document.getElementById('price-data').textContent);
+
+  document.getElementById('observed-date').textContent = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${data.asOf}T00:00:00Z`));
 
   const points=data.points;
 
