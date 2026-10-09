@@ -982,9 +982,6 @@
   .policy-story-page .sequence-event-list button { grid-template-columns: 1fr; gap: .4rem; }
 }
 .policy-story-page .hero .byline { display: block; line-height: 1.5; }
-.policy-story-page .hero-description { max-width: 40rem; margin: 12rem 0 0; color: #fff; font-size: 1rem; font-weight: 400; line-height: 1.6; }
-@media(min-width:901px) { .policy-story-page .hero { flex-direction: column; align-items: flex-start; } .policy-story-page .hero-copy { align-self: flex-start; } .policy-story-page .hero-description { width: min(40rem, 45vw); margin-top: auto; padding-top: 12rem; } }
-@media(max-width:900px) { .policy-story-page .hero-description { position: relative; z-index: 1; } }
 
 /* Let the shared universe remain visible between the reading panels. */
 .single-page .policy-story-page .price-analysis { background: transparent; }
@@ -1109,19 +1106,3 @@
 .policy-story-page .history-scroll .history-axis-title { fill: #974311; font-weight: 700; }
 
 .policy-story-page .history-scroll .history-policy-label-may { fill: #b58b00; font-weight: 700; }
-
-.policy-story-page .hero-description-actions { position: relative; z-index: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.25rem; }
-.policy-story-page .hero-description-actions > a { color: var(--ink); text-decoration: none; font-size: .8rem; font-weight: 700; }
-.policy-story-page .hero-description-actions > a:hover { text-decoration: underline; }
-@media(min-width:901px) {
-  .policy-story-page .hero-description,
-  .policy-story-page .hero-description-actions { align-self: flex-end; width: min(40rem, 45vw); }
-}
-
-.policy-story-page .hero-research-intro { position: absolute; left: clamp(1.5rem, 7vw, 8rem); bottom: calc(.5rem - 110px); width: min(44rem, 42vw); isolation: isolate; }
-.policy-story-page .hero-research-intro::before { content: ""; position: absolute; inset: -2rem; z-index: -1; background: radial-gradient(ellipse, rgba(0, 0, 0, .9) 20%, rgba(0, 0, 0, .6) 60%, transparent 85%); filter: blur(18px); pointer-events: none; }
-.policy-story-page .hero-research-intro > p { margin: 0; color: var(--muted); font-size: 1rem; font-weight: 400; line-height: 1.65; }
-@media(max-width:900px) { .policy-story-page .hero-research-intro { position: relative; left: auto; bottom: auto; width: 100%; margin-top: 3rem; } }
-.policy-story-page .hero-research-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; max-width: 100%; }
-.policy-story-page .hero-research-actions > a { color: var(--ink); text-decoration: none; font-size: .8rem; font-weight: 700; }
-.policy-story-page .hero-research-actions > a:hover { text-decoration: underline; }
